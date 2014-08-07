@@ -84,3 +84,77 @@ plinkedlist lexer_parse(char* source) {
 	/* return the linked list with tokens */
 	return tokens;
 }
+pll_entry lexer_parse_brwords(pll_entry tokens, plinkedlist* list) {
+	*list = ll_new();
+	ptoken t = GETTKN(tokens);
+
+	char even = 0;
+	CHECK_TOKEN(t, TOKEN_BRSTART);
+	while(t->type != TOKEN_BREND) {
+		tokens = NEXTTKN(tokens);
+		t = GETTKN(tokens);
+
+		if(!even) {
+			CHECK_TOKEN(t, TOKEN_WORD);
+			ll_push(*list, t->string);
+		} else
+			CHECK_TOKEN(t, TOKEN_COMMA);
+		even = !even;
+	}
+
+	return tokens;
+}
+
+token consttokens[] = {
+	{ TOKEN_VAR, "var", 0 },
+	{ TOKEN_FUNCTION, "function", 0 },
+	{ TOKEN_IF, "if", 0 },
+	{ TOKEN_ELSE, "else", 0 },
+	{ TOKEN_WHILE, "while", 0 },
+
+	{ TOKEN_PLUS, "+", 0 },
+	{ TOKEN_MINUS, "-", 0 },
+	{ TOKEN_MUL, "*", 0 },
+	{ TOKEN_DIV, "/", 0 },
+	{ TOKEN_MOD, "%", 0 },
+
+	{ TOKEN_EQUAL, "==", 0 },
+	{ TOKEN_NOTEQUAL, "!=", 0 },
+	{ TOKEN_SMALLERTHAN, "<", 0 },
+	{ TOKEN_BIGGERTHAN, ">", 0 },
+	{ TOKEN_SMALLEREQUAL, "<=", 0 },
+	{ TOKEN_BIGGEREQUAL, ">=", 0 },
+	{ TOKEN_NEGATION, "!", 0 },
+
+	{ TOKEN_ASSIGN, "=", 0 },
+	{ TOKEN_INCREMENT, "++", 0 },
+	{ TOKEN_DECREMENT, "--", 0 },
+
+	{ TOKEN_COLON, ":", 0 },
+	{ TOKEN_SEMICOLON, ";", 0 },
+	{ TOKEN_COMMA, ",", 0 },
+	{ TOKEN_CBRSTART, "{", 0 },
+	{ TOKEN_CBREND, "}", 0 },
+	{ TOKEN_BRSTART, "(", 0 },
+	{ TOKEN_BREND, ")", 0 },
+	{ TOKEN_IBRSTART, "[", 0 },
+	{ TOKEN_IBREND, "]", 0 },
+
+	{ TOKEN_EOF, NULL, 0 }
+};
+
+ptoken lexer_token_create(tokentype type, char* string, int line) {
+	ptoken ret = (ptoken)malloc(sizeof(token));
+	ret->type = type;
+	ret->string = string;
+	ret->line = line;
+
+	return ret;
+}
+ptoken lexer_token_copy(ptoken src, int line) {
+	ptoken ret = (ptoken)malloc(sizeof(token));
+	memcpy(ret, src, sizeof(token));
+	ret->line = line;
+
+	return ret;
+}

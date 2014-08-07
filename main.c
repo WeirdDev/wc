@@ -7,7 +7,7 @@
 #include "lexer.h"
 
 int main(int argc, char *argv[]) {
-	/* check if we've got just enought input */
+	/* check if we've got just enough input */
 	if (argc != 2) {
 		FATAL("No input files");
 	}

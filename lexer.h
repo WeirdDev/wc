@@ -30,8 +30,9 @@ typedef char tokentype;
 #define TOKEN_BIGGEREQUAL	55
 #define TOKEN_NEGATION		56
 /* Other operators */
-#define TOKEN_INCREMENT		60
-#define TOKEN_DECREMENT		61
+#define TOKEN_ASSIGN		60
+#define TOKEN_INCREMENT		61
+#define TOKEN_DECREMENT		62
 /* Misc */
 #define TOKEN_COLON			70
 #define TOKEN_SEMICOLON		71
@@ -50,61 +51,22 @@ typedef struct token_t {
 	int line;
 } token, *ptoken;
 
-token consttokens[] = { 
-	{ TOKEN_VAR, "var", 0 },
-	{ TOKEN_FUNCTION, "function", 0 },
-	{ TOKEN_IF, "if", 0 },
-	{ TOKEN_ELSE, "else", 0 },
-	{ TOKEN_WHILE, "while", 0 },
-	
-	{ TOKEN_PLUS, "+", 0 },
-	{ TOKEN_MINUS, "-", 0 },
-	{ TOKEN_MUL, "*", 0 },
-	{ TOKEN_DIV, "/", 0 },
-	{ TOKEN_MOD, "%", 0 },
-	
-	{ TOKEN_EQUAL, "==", 0 },
-	{ TOKEN_NOTEQUAL, "!=", 0 },
-	{ TOKEN_SMALLERTHAN, "<", 0 },
-	{ TOKEN_BIGGERTHAN, ">", 0 },
-	{ TOKEN_SMALLEREQUAL, "<=", 0 },
-	{ TOKEN_BIGGEREQUAL, ">=", 0 },
-	{ TOKEN_NEGATION, "!", 0 },
-	
-	{ TOKEN_INCREMENT, "++", 0 },
-	{ TOKEN_DECREMENT, "--", 0 },
-	
-	{ TOKEN_COLON, ":", 0 },
-	{ TOKEN_SEMICOLON, ";", 0 },
-	{ TOKEN_COMMA, ",", 0 },
-	{ TOKEN_CBRSTART, "{", 0 },
-	{ TOKEN_CBREND, "}", 0 },
-	{ TOKEN_BRSTART, "(", 0 },
-	{ TOKEN_BREND, ")", 0 },
-	{ TOKEN_IBRSTART, "[", 0 },
-	{ TOKEN_IBREND, "]", 0 }, 
-	
-	{ TOKEN_EOF, NULL, 0 }
-}; 
+extern token consttokens[];
 
 #include "ll.h"
 #include <malloc.h>
 extern plinkedlist lexer_parse(char* source);
+extern pll_entry lexer_parse_brwords(pll_entry tokens, plinkedlist* list);
 
-inline ptoken lexer_token_create(tokentype type, char* string, int line) {
-	ptoken ret = (ptoken)malloc(sizeof(token));
-	ret->type = type;
-	ret->string = string;
-	ret->line = line;
-	
-	return ret;
-}
-inline ptoken lexer_token_copy(ptoken src, int line) {
-	ptoken ret = (ptoken)malloc(sizeof(token));
-	memcpy(ret, src, sizeof(token));
-	ret->line = line;
-	
-	return ret;
-}
+#define GETTKN(tokens)	((ptoken)tokens->data)
+#define NEXTTKN(tokens)	(tokens->next)
+
+#define UNEXP_TOKEN(ptoken)					{ FATAL("Unexpected token on line %d: '%s'", ptoken->line, ptoken->string); }
+#define UNEXP_EXP_TOKEN(ptoken, expected)	{ FATAL("Unexpected token '%s' on line %d, expected '%s'", ptoken->string, ptoken->line, #expected ); }
+
+#define CHECK_TOKEN(ptoken, exptype)		if((ptoken)->type != exptype) { UNEXP_EXP_TOKEN(ptoken, exptype); }
+
+extern ptoken lexer_token_create(tokentype type, char* string, int line);
+extern ptoken lexer_token_copy(ptoken src, int line);
 
 #endif /* LEXER_H */
