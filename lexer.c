@@ -6,7 +6,7 @@
 
 //#define ISKEYWORD(keyword) (strcmp(currptr, keyword)==0 && !isalpha(currptr[strlen(keyword)]))
 
-plinkedlist lexer_parse(char* source, unsigned int* tokensn) {
+plinkedlist lexer_parse(char* source) {
 	plinkedlist tokens = ll_new();
 	
 	int l, currline = 0;

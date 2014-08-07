@@ -89,7 +89,7 @@ token consttokens[] = {
 
 #include "ll.h"
 #include <malloc.h>
-extern plinkedlist lexer_parse(char* source, unsigned int* tokensn);
+extern plinkedlist lexer_parse(char* source);
 
 inline ptoken lexer_token_create(tokentype type, char* string, int line) {
 	ptoken ret = (ptoken)malloc(sizeof(token));

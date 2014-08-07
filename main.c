@@ -2,21 +2,37 @@
 #include <stdlib.h>
 
 #include "error.h"
+#include "ll.h"
 
-int main(int argc, char *argv[])
-{
-	if (argc < 2)
-	{
+#include "lexer.h"
+
+int main(int argc, char *argv[]) {
+	/* check if we've got just enought input */
+	if (argc != 2) {
 		FATAL("No input files");
 	}
 
-	FILE *fp = fopen(argv[1], "r");
-	if (fp == NULL)
-	{
+	/* open the source file for reading */
+	FILE *fp;
+	if ((fp = fopen(argv[1], "r")) == NULL) {
 		FATAL("Could not open the file specified");
 	}
 	
+	/* get the length of the file */
+	fseek(fp, 0L, SEEK_END);
+	unsigned int fsize = ftell(fp);
+	rewind(fp);
 
+	/* read the file`s sources to memory */
+	char* source = (char*)malloc(fsize+1);
+	source[fsize] = '\0';
+	fread(source, sizeof(char), fsize, fp);
+
+	/* LEXICAL ANALYSIS */
+	plinkedlist tokens = lexer_parse(source);
+
+	/* SYNTACTICAL ANALYSIS */
+	//TODO: place it here!
 
 	fclose(fp);
 	return 0;
