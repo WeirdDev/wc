@@ -28,5 +28,6 @@ extern int ll_remove(plinkedlist ll, int index);
 
 extern void ll_push(plinkedlist ll, void * data);
 extern void * ll_pop(plinkedlist ll);
+extern void * ll_peek(plinkedlist ll);
 
 #endif /* LL_H */

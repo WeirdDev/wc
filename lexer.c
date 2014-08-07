@@ -14,6 +14,11 @@ plinkedlist lexer_parse(char* source) {
 	while(*curr!='\0') {
 		if(*curr=='\n')
 			currline++;
+		else if(isspace(*curr)) {
+			curr++;
+			continue;
+		}
+
 		else if(isdigit(*curr)) {
 			curr = start;
 			while(isdigit(*++curr))

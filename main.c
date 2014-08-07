@@ -32,7 +32,7 @@ int main(int argc, char *argv[]) {
 	plinkedlist tokens = lexer_parse(source);
 
 	/* SYNTACTICAL ANALYSIS */
-	//TODO: place it here!
+	plinkedlist globalspace = syntax_parse(tokens);
 
 	fclose(fp);
 	return 0;

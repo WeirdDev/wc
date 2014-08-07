@@ -33,8 +33,14 @@ pll_entry syntax_parse_gsvariable(pll_entry tokens, pgsvariable* ret) {
 		return tokens;
 	else if(t->type != TOKEN_ASSIGN)
 		UNEXP_EXP_TOKEN(t, TOKEN_SEMICOLON)
-	else
-		return syntax_parse_expression(NEXTTKN(tokens), &var->expression);
+	else {
+		tokens = syntax_parse_expression(NEXTTKN(tokens), &var->expression);
+		tokens = NEXTTKN(tokens);
+		t = GETTKN(tokens);
+		CHECK_TOKEN(t, TOKEN_SEMICOLON);
+
+		return tokens;
+	}
 
 	return tokens;
 }

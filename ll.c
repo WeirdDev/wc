@@ -2,25 +2,25 @@
 #include "ll.h"
 
 plinkedlist ll_new() {
-	/* alokuj a vynuluj novú štruktúru pre spájaný zoznam */
+	/* alokuj a vynuluj novĂş ĹˇtruktĂşru pre spĂˇjanĂ˝ zoznam */
 	return (plinkedlist)calloc(sizeof(linkedlist), 1);
 }
 void ll_destroy(plinkedlist ll) {
 	pll_entry tmp, curr = ll->first;
 	
-	//pokým ešte nie je koniec zoznamu
+	//pokĂ˝m eĹˇte nie je koniec zoznamu
 	while(curr!=NULL) {
-		//ulož si nasledujúcu položku zoznamu
+		//uloĹľ si nasledujĂşcu poloĹľku zoznamu
 		tmp = curr->next;
 		
-		//dealokuj túto položku
+		//dealokuj tĂşto poloĹľku
 		free(curr);
 		
-		//... a pokračuj ďalšiou položkou
+		//... a pokraÄŤuj ÄŹalĹˇiou poloĹľkou
 		curr = tmp;
 	}
 	
-	//nakoniec uvoľni aj samotnú štruktúru zoznamu
+	//nakoniec uvoÄľni aj samotnĂş ĹˇtruktĂşru zoznamu
 	free(ll);
 }
 
@@ -43,35 +43,35 @@ void * ll_get(plinkedlist ll, int index) {
 	int i = 0;
 	pll_entry curr = ll->first;
 	
-	//pokým niesme na konci
+	//pokĂ˝m niesme na konci
 	while(curr!=NULL) {
 	
-		//ak sme našli položku ktorú hľadáme
+		//ak sme naĹˇli poloĹľku ktorĂş hÄľadĂˇme
 		if(i==index)
-			//môžeme vrátiť pointer na jej dáta
+			//mĂ´Ĺľeme vrĂˇtiĹĄ pointer na jej dĂˇta
 			return curr->data;
 		
-		//inak ideme ďalej
+		//inak ideme ÄŹalej
 		curr = curr->next;
 		i++;
 	}
 	
-	//našli sme koniec zoznamu, no nedosiahli sme požadovaný index
-	//vraciame neplatnú hodnotu (0xffffffff na 32-bitových systémoch)
+	//naĹˇli sme koniec zoznamu, no nedosiahli sme poĹľadovanĂ˝ index
+	//vraciame neplatnĂş hodnotu (0xffffffff na 32-bitovĂ˝ch systĂ©moch)
 	return (void*)-1;
 }
 int ll_set(plinkedlist ll, int index, void * data) {
 	int i = 0;
 	pll_entry curr = ll->first;
 	
-	//ešte niesme na konci?
+	//eĹˇte niesme na konci?
 	while(curr!=NULL) {
-		//je toto položka ktorú cheme zmeniť?
+		//je toto poloĹľka ktorĂş cheme zmeniĹĄ?
 		if(i==index) {
-			//zmeňme ju
+			//zmeĹ�me ju
 			curr->data = data;
 			
-			//vráťme index
+			//vrĂˇĹĄme index
 			return index;
 		}
 		
@@ -79,44 +79,44 @@ int ll_set(plinkedlist ll, int index, void * data) {
 		i++;
 	}
 	
-	//nedosiahli sme potrebný index
+	//nedosiahli sme potrebnĂ˝ index
 	return (int)-1;
 }
 
 void ll_add(plinkedlist ll, void * data) {
-	//alokuj novú položku, ulož adresu na ňu do dočasnej premennej
+	//alokuj novĂş poloĹľku, uloĹľ adresu na Ĺ�u do doÄŤasnej premennej
 	pll_entry tmp = (pll_entry)malloc(sizeof(ll_entry));
 	
-	//nastav dáta položky
+	//nastav dĂˇta poloĹľky
 	tmp->data = data;
-	//predošlým elementom položky na konci zoznamu je bývalý koniec :)
+	//predoĹˇlĂ˝m elementom poloĹľky na konci zoznamu je bĂ˝valĂ˝ koniec :)
 	tmp->prev = ll->last;
-	//zoznam ukončíme nulou, NULL
+	//zoznam ukonÄŤĂ­me nulou, NULL
 	tmp->next = NULL;
 	
-	//bývalá posledná položka musí ukazovať na novú
+	//bĂ˝valĂˇ poslednĂˇ poloĹľka musĂ­ ukazovaĹĄ na novĂş
 	ll->last->next = tmp;
-	//základná štruktúra zoznamu musí tiež ukazovať na novú poslednú položku
+	//zĂˇkladnĂˇ ĹˇtruktĂşra zoznamu musĂ­ tieĹľ ukazovaĹĄ na novĂş poslednĂş poloĹľku
 	ll->last = tmp;
 }
 int ll_remove(plinkedlist ll, int index) {
 	int i = 0;
 	pll_entry curr = ll->first;
 	
-	//pokým niesme na konci
+	//pokĂ˝m niesme na konci
 	while(curr!=NULL) {
-		//našli sme index ktorý hľadáme?
+		//naĹˇli sme index ktorĂ˝ hÄľadĂˇme?
 		if(i==index) {
-			//ak áno, nasledujúce položka predošlej položky je nasledujúce položka aktuálnej položky
+			//ak Ăˇno, nasledujĂşce poloĹľka predoĹˇlej poloĹľky je nasledujĂşce poloĹľka aktuĂˇlnej poloĹľky
 			curr->prev->next = curr->next;
 			
-			//predošlá položka nasledujúcej položky je predošlá položka aktuálnej položky
+			//predoĹˇlĂˇ poloĹľka nasledujĂşcej poloĹľky je predoĹˇlĂˇ poloĹľka aktuĂˇlnej poloĹľky
 			curr->next->prev = curr->prev;
 			
-			//uvoľni aktuálnu položku
+			//uvoÄľni aktuĂˇlnu poloĹľku
 			free(curr);
 			
-			//vráť nezáporný index
+			//vrĂˇĹĄ nezĂˇpornĂ˝ index
 			return index;
 		}
 		
@@ -124,7 +124,7 @@ int ll_remove(plinkedlist ll, int index) {
 		i++;
 	}
 	
-	//v prípade neúspechu vráť zápornú hodnotu
+	//v prĂ­pade neĂşspechu vrĂˇĹĄ zĂˇpornĂş hodnotu
 	return (int)-1;
 }
 
@@ -144,4 +144,10 @@ void * ll_pop(plinkedlist ll) {
 	}
 	
 	return ret;
+}
+void * ll_peek(plinkedlist ll) {
+	if(ll->last==NULL)
+		return NULL;
+
+	return ll->last->data;
 }
