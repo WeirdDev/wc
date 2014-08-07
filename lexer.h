@@ -33,62 +33,76 @@ typedef char tokentype;
 #define TOKEN_INCREMENT		60
 #define TOKEN_DECREMENT		61
 /* Misc */
-#define TOKEN_SEMICOLON		70
-#define TOKEN_CBRSTART		71
-#define TOKEN_CBREND		72
-#define TOKEN_BRSTART		73
-#define TOKEN_BREND			74
-#define TOKEN_IBRSTART		75
-#define TOKEN_IBREND		76
+#define TOKEN_COLON			70
+#define TOKEN_SEMICOLON		71
+#define TOKEN_COMMA			72
+#define TOKEN_CBRSTART		73
+#define TOKEN_CBREND		74
+#define TOKEN_BRSTART		75
+#define TOKEN_BREND			76
+#define TOKEN_IBRSTART		77
+#define TOKEN_IBREND		78
 
 typedef struct token_t {
 	tokentype type;
 	char* string;
+	
+	int line;
 } token, *ptoken;
 
 token consttokens[] = { 
-	{ TOKEN_VAR, "var" },
-	{ TOKEN_FUNCTION, "function" },
-	{ TOKEN_IF, "if" },
-	{ TOKEN_ELSE, "else" },
-	{ TOKEN_WHILE, "while" },
+	{ TOKEN_VAR, "var", 0 },
+	{ TOKEN_FUNCTION, "function", 0 },
+	{ TOKEN_IF, "if", 0 },
+	{ TOKEN_ELSE, "else", 0 },
+	{ TOKEN_WHILE, "while", 0 },
 	
-	{ TOKEN_PLUS, "+" },
-	{ TOKEN_MINUS, "-" },
-	{ TOKEN_MUL, "*" },
-	{ TOKEN_DIV, "/" },
-	{ TOKEN_MOD, "%" },
+	{ TOKEN_PLUS, "+", 0 },
+	{ TOKEN_MINUS, "-", 0 },
+	{ TOKEN_MUL, "*", 0 },
+	{ TOKEN_DIV, "/", 0 },
+	{ TOKEN_MOD, "%", 0 },
 	
-	{ TOKEN_EQUAL, "==" },
-	{ TOKEN_NOTEQUAL, "!=" },
-	{ TOKEN_SMALLERTHAN, "<" },
-	{ TOKEN_BIGGERTHAN, ">" },
-	{ TOKEN_SMALLEREQUAL, "<=" },
-	{ TOKEN_BIGGEREQUAL, ">=" },
-	{ TOKEN_NEGATION, "!" },
+	{ TOKEN_EQUAL, "==", 0 },
+	{ TOKEN_NOTEQUAL, "!=", 0 },
+	{ TOKEN_SMALLERTHAN, "<", 0 },
+	{ TOKEN_BIGGERTHAN, ">", 0 },
+	{ TOKEN_SMALLEREQUAL, "<=", 0 },
+	{ TOKEN_BIGGEREQUAL, ">=", 0 },
+	{ TOKEN_NEGATION, "!", 0 },
 	
-	{ TOKEN_INCREMENT, "++" },
-	{ TOKEN_DECREMENT, "--" },
+	{ TOKEN_INCREMENT, "++", 0 },
+	{ TOKEN_DECREMENT, "--", 0 },
 	
-	{ TOKEN_SEMICOLON, ";" },
-	{ TOKEN_CBRSTART, "{" },
-	{ TOKEN_CBREND, "}" },
-	{ TOKEN_BRSTART, "(" },
-	{ TOKEN_BREND, ")" },
-	{ TOKEN_IBRSTART, "[" },
-	{ TOKEN_IBREND, "]" }, 
+	{ TOKEN_COLON, ":", 0 },
+	{ TOKEN_SEMICOLON, ";", 0 },
+	{ TOKEN_COMMA, ",", 0 },
+	{ TOKEN_CBRSTART, "{", 0 },
+	{ TOKEN_CBREND, "}", 0 },
+	{ TOKEN_BRSTART, "(", 0 },
+	{ TOKEN_BREND, ")", 0 },
+	{ TOKEN_IBRSTART, "[", 0 },
+	{ TOKEN_IBREND, "]", 0 }, 
 	
-	{ TOKEN_EOF, NULL }
+	{ TOKEN_EOF, NULL, 0 }
 }; 
 
 #include "ll.h"
 #include <malloc.h>
 extern plinkedlist lexer_parse(char* source, unsigned int* tokensn);
 
-inline ptoken lexer_token_create(tokentype type, char* string) {
+inline ptoken lexer_token_create(tokentype type, char* string, int line) {
 	ptoken ret = (ptoken)malloc(sizeof(token));
 	ret->type = type;
 	ret->string = string;
+	ret->line = line;
+	
+	return ret;
+}
+inline ptoken lexer_token_copy(ptoken src, int line) {
+	ptoken ret = (ptoken)malloc(sizeof(token));
+	memcpy(ret, src, sizeof(token));
+	ret->line = line;
 	
 	return ret;
 }
