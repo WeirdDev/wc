@@ -3,17 +3,18 @@
 
 #include "ll.h"
 
-typedef char lsmembertype;
+#include "member.h"
+
 /* LOCAL SPACE MEMBERS */
-#define LSMEMBER_LSBLOCK		1
-#define LSMEMBER_VARIABLE		2
-#define LSMEMBER_EXPRESSION		3 //<-- these are expressions like calls, assignments or (in/de)crementations
-#define LSMEMBER_IF				4
-#define LSMEMBER_ELSE			5
-#define LSMEMBER_WHILE			6
+#define LSMEMBER_LSBLOCK		LSTN(1)
+#define LSMEMBER_VARIABLE		LSTN(2)
+#define LSMEMBER_EXPRESSION		LSTN(3) //<-- these are expressions like calls, assignments or (in/de)crementations
+#define LSMEMBER_IF				LSTN(4)
+#define LSMEMBER_ELSE			LSTN(5)
+#define LSMEMBER_WHILE			LSTN(6)
 
 typedef struct lsmember_t {
-	lsmembertype type;
+	member base;
 
 } lsmember, *plsmember;
 extern pll_entry syntax_parse_lsmember(pll_entry tokens, plsmember* ret);

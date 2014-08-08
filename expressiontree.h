@@ -1,23 +1,25 @@
 #ifndef EXPRESSIONTREE_H
 #define EXPRESSIONTREE_H
 
+#include "member.h"
+#include "ll.h"
+
 /* BASE EXPRESSION */
-typedef char expressiontype;
 typedef struct expression_t {
-	expressiontype type;
+	struct member_t base;
 
 } expression, *pexpression;
 pll_entry syntax_parse_expression(pll_entry tokens, pexpression* expression);
 
 /* LOCAL SPACE EXPRESSIONS */
-#define EXPRESSION_ASSIGN		10
-#define EXPRESSION_CALL			11
-#define EXPRESSION_INCREMENT	12
-#define EXPRESSION_DECREMENT	13
+#define EXPRESSION_ASSIGN		EXTN(10)
+#define EXPRESSION_CALL			EXTN(11)
+#define EXPRESSION_INCREMENT	EXTN(12)
+#define EXPRESSION_DECREMENT	EXTN(13)
 
 /* OTHER EXPRESSIONS */
 typedef struct bracketexpression_t {
-	expressiontype type;
+	expression base;
 
 	pexpression expression;
 } bracketexpression, *pbracketexpression;

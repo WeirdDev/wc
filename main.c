@@ -34,7 +34,7 @@ int main(int argc, char *argv[]) {
 	plinkedlist tokens = lexer_parse(source);
 
 	/* SYNTACTICAL ANALYSIS */
-	psyntaxtree syntaxtree = syntax_parse(tokens);
+	psyntaxtree syntaxtree = syntaxtree_parse(tokens);
 
 	fclose(fp);
 	return 0;

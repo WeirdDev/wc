@@ -1,23 +1,28 @@
 #include <malloc.h>
+
+#include "error.h"
+
+#include "globaltree.h"
 #include "treevisitor.h"
 
+void syntax_treevisitor_visit(struct treevisitor_t* visitor, pmember object);
 ptreevisitor syntax_treevisitor_new() {
 	ptreevisitor ret = (ptreevisitor)calloc(sizeof(ptreevisitor), 1);
+	ret->visit = &syntax_treevisitor_visit;
 	return ret;
 }
-void syntax_treevisitor_visitglobalspace(ptreevisitor visitor, psyntaxtree tree) {
-	pll_entry curr = tree->globalspace->first;
-	while(curr != NULL) {
-		switch(((pgsmember)curr->data)->type) {
-			case GSMEMBER_VARIABLE:
-				gsvariable_accept(visitor, (pgsvariable)curr->data);
-				break;
-			case GSMEMBER_FUNCTION:
-				gsvariable_accept(visitor, (pgsfunction)curr->data);
-				break;
-			default:
-				FATAL("Unknown gstype %d", ((pgsmember)curr->data)->type);
-				break;
-		}
+void syntax_treevisitor_visit(struct treevisitor_t* visitor, pmember object) {
+	switch(object->type) {
+		case GSMEMBER_VARIABLE:
+			visitor->visitgsvariable(visitor, (pgsvariable)object);
+			break;
+		case GSMEMBER_FUNCTION:
+			visitor->visitgsfunction(visitor, (pgsfunction)object);
+			break;
+
+		//TODO: add other types
+		default:
+			FATAL("Unknown gstype %d", object->type);
+			break;
 	}
 }

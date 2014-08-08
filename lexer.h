@@ -1,52 +1,53 @@
 #ifndef LEXER_H
 #define LEXER_H
 
-typedef char tokentype;
+#include "member.h"
+
 /* EOF */
-#define TOKEN_EOF			0
+#define TOKEN_EOF			TKTN(0)
 /* Identifier */
-#define TOKEN_WORD			10
+#define TOKEN_WORD			TKTN(10)
 /* Keywords */
-#define TOKEN_VAR			20
-#define TOKEN_FUNCTION		21
-#define TOKEN_IF			22
-#define TOKEN_ELSE			23
-#define TOKEN_WHILE			24
+#define TOKEN_VAR			TKTN(20)
+#define TOKEN_FUNCTION		TKTN(21)
+#define TOKEN_IF			TKTN(22)
+#define TOKEN_ELSE			TKTN(23)
+#define TOKEN_WHILE			TKTN(24)
 /* Constants */
-#define TOKEN_NUMBER		30
-#define TOKEN_STRING		31
-#define TOKEN_NULL			32
+#define TOKEN_NUMBER		TKTN(30)
+#define TOKEN_STRING		TKTN(31)
+#define TOKEN_NULL			TKTN(32)
 /* Arithmetic operators */
-#define TOKEN_PLUS			40
-#define TOKEN_MINUS			41
-#define TOKEN_MUL			42
-#define TOKEN_DIV			43
-#define TOKEN_MOD			44
+#define TOKEN_PLUS			TKTN(40)
+#define TOKEN_MINUS			TKTN(41)
+#define TOKEN_MUL			TKTN(42)
+#define TOKEN_DIV			TKTN(43)
+#define TOKEN_MOD			TKTN(44)
 /* Logic operators */
-#define TOKEN_EQUAL			50
-#define TOKEN_NOTEQUAL		51
-#define TOKEN_SMALLERTHAN	52
-#define TOKEN_BIGGERTHAN	53
-#define TOKEN_SMALLEREQUAL	54
-#define TOKEN_BIGGEREQUAL	55
-#define TOKEN_NEGATION		56
+#define TOKEN_EQUAL			TKTN(50)
+#define TOKEN_NOTEQUAL		TKTN(51)
+#define TOKEN_SMALLERTHAN	TKTN(52)
+#define TOKEN_BIGGERTHAN	TKTN(53)
+#define TOKEN_SMALLEREQUAL	TKTN(54)
+#define TOKEN_BIGGEREQUAL	TKTN(55)
+#define TOKEN_NEGATION		TKTN(56)
 /* Other operators */
-#define TOKEN_ASSIGN		60
-#define TOKEN_INCREMENT		61
-#define TOKEN_DECREMENT		62
+#define TOKEN_ASSIGN		TKTN(60)
+#define TOKEN_INCREMENT		TKTN(61)
+#define TOKEN_DECREMENT		TKTN(62)
 /* Misc */
-#define TOKEN_COLON			70
-#define TOKEN_SEMICOLON		71
-#define TOKEN_COMMA			72
-#define TOKEN_CBRSTART		73
-#define TOKEN_CBREND		74
-#define TOKEN_BRSTART		75
-#define TOKEN_BREND			76
-#define TOKEN_IBRSTART		77
-#define TOKEN_IBREND		78
+#define TOKEN_COLON			TKTN(70)
+#define TOKEN_SEMICOLON		TKTN(71)
+#define TOKEN_COMMA			TKTN(72)
+#define TOKEN_CBRSTART		TKTN(73)
+#define TOKEN_CBREND		TKTN(74)
+#define TOKEN_BRSTART		TKTN(75)
+#define TOKEN_BREND			TKTN(76)
+#define TOKEN_IBRSTART		TKTN(77)
+#define TOKEN_IBREND		TKTN(78)
 
 typedef struct token_t {
-	tokentype type;
+	member base;
 	char* string;
 	
 	int line;
@@ -65,9 +66,9 @@ extern pll_entry lexer_parse_brwords(pll_entry tokens, plinkedlist* list);
 #define UNEXP_TOKEN(ptoken)					{ FATAL("Unexpected token on line %d: '%s'", ptoken->line, ptoken->string); }
 #define UNEXP_EXP_TOKEN(ptoken, expected)	{ FATAL("Unexpected token '%s' on line %d, expected '%s'", ptoken->string, ptoken->line, #expected ); }
 
-#define CHECK_TOKEN(ptoken, exptype)		if((ptoken)->type != exptype) { UNEXP_EXP_TOKEN(ptoken, exptype); }
+#define CHECK_TOKEN(ptoken, exptype)		if((ptoken)->base.type != exptype) { UNEXP_EXP_TOKEN(ptoken, exptype); }
 
-extern ptoken lexer_token_create(tokentype type, char* string, int line);
+extern ptoken lexer_token_create(membertype type, char* string, int line);
 extern ptoken lexer_token_copy(ptoken src, int line);
 
 #endif /* LEXER_H */

@@ -4,12 +4,13 @@
 
 #include "lexer.h"
 #include "globaltree.h"
+#include "treevisitor.h"
 
 pll_entry syntax_parse_gsmember(pll_entry tokens, pgsmember* ret) {
 	ptoken t = GETTKN(tokens);
-	if(t->type == TOKEN_VAR)
+	if(t->base.type == TOKEN_VAR)
 		return syntax_parse_gsvariable(NEXTTKN(tokens), (pgsvariable*)ret);
-	else if(t->type == TOKEN_FUNCTION)
+	else if(t->base.type == TOKEN_FUNCTION)
 		return syntax_parse_gsfunction(NEXTTKN(tokens), (pgsfunction*)ret);
 	else {
 		UNEXP_TOKEN(t);
@@ -17,9 +18,13 @@ pll_entry syntax_parse_gsmember(pll_entry tokens, pgsmember* ret) {
 	}
 
 }
+accept_method(gsvariable) {
+
+}
 pll_entry syntax_parse_gsvariable(pll_entry tokens, pgsvariable* ret) {
 	pgsvariable var = (pgsvariable)malloc(sizeof(gsvariable));
-	var->gsmember.type = GSMEMBER_VARIABLE;
+	var->base.base.type = GSMEMBER_VARIABLE;
+	var->base.base.accept = &gsvariable_accept;
 	*ret = var;
 
 	ptoken t = GETTKN(tokens);
@@ -29,9 +34,9 @@ pll_entry syntax_parse_gsvariable(pll_entry tokens, pgsvariable* ret) {
 
 	tokens = NEXTTKN(tokens);
 	t = (ptoken)tokens->data;
-	if(t->type == TOKEN_SEMICOLON)
+	if(t->base.type == TOKEN_SEMICOLON)
 		return tokens;
-	else if(t->type != TOKEN_ASSIGN)
+	else if(t->base.type != TOKEN_ASSIGN)
 		UNEXP_EXP_TOKEN(t, TOKEN_SEMICOLON)
 	else {
 		tokens = syntax_parse_expression(NEXTTKN(tokens), &var->expression);
@@ -46,7 +51,7 @@ pll_entry syntax_parse_gsvariable(pll_entry tokens, pgsvariable* ret) {
 }
 pll_entry syntax_parse_gsfunction(pll_entry tokens, pgsfunction* ret) {
 	pgsfunction fn = (pgsfunction)malloc(sizeof(gsfunction));
-	fn->gsmember.type = GSMEMBER_FUNCTION;
+	fn->base.base.type = GSMEMBER_FUNCTION;
 	*ret = fn;
 
 	ptoken t = (ptoken)tokens->data;
@@ -58,7 +63,7 @@ pll_entry syntax_parse_gsfunction(pll_entry tokens, pgsfunction* ret) {
 	tokens = NEXTTKN(tokens);
 	t = GETTKN(tokens);
 
-	if(t->type==TOKEN_SEMICOLON) {
+	if(t->base.type==TOKEN_SEMICOLON) {
 		fn->localspace = syntax_create_lsblock(ll_new() /* push an empty list for function declarations */);
 		return tokens;
 	}

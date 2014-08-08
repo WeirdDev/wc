@@ -6,7 +6,19 @@
 #include "lexer.h"
 #include "expressiontree.h"
 #include "localtree.h"
+#include "treevisitor.h"
 
+accept_method(lsblock) {
+
+}
+plsblock syntax_create_lsblock(plinkedlist members) {
+	plsblock ret = (plsblock)malloc(sizeof(lsblock));
+	ret->base.base.type = LSMEMBER_LSBLOCK;
+	ret->base.base.accept = &lsblock_accept;
+	ret->localspace = members;
+
+	return ret;
+}
 pll_entry syntax_parse_lsblock(pll_entry tokens, plsblock* localspace) {
 	ptoken t = GETTKN(tokens);
 	tokens = NEXTTKN(tokens);
@@ -18,7 +30,7 @@ pll_entry syntax_parse_lsblock(pll_entry tokens, plsblock* localspace) {
 		t = GETTKN(tokens);
 
 		plsmember lsm;
-		if(t->type==TOKEN_CBRSTART)
+		if(t->base.type==TOKEN_CBRSTART)
 			tokens = syntax_parse_lsblock(tokens, (plsblock*)&lsm);
 		else
 			tokens = syntax_parse_lsmember(tokens, &lsm);
@@ -26,20 +38,14 @@ pll_entry syntax_parse_lsblock(pll_entry tokens, plsblock* localspace) {
 		ll_push(members, lsm);
 
 		tokens = NEXTTKN(tokens);
-	} while(t->type != TOKEN_CBREND);
+	} while(t->base.type != TOKEN_CBREND);
 	tokens = NEXTTKN(tokens);
 
 	*localspace = syntax_create_lsblock(members);
 
 	return tokens;
 }
-plsblock syntax_create_lsblock(plinkedlist members) {
-	plsblock ret = (plsblock)malloc(sizeof(lsblock));
-	ret->base.type = LSMEMBER_LSBLOCK;
-	ret->localspace = members;
 
-	return ret;
-}
 pll_entry syntax_parse_lsblock_singlemember(pll_entry tokens, plsblock* localspace) {
 	plsmember m;
 	tokens = syntax_parse_lsmember(tokens, &m);
@@ -54,15 +60,15 @@ pll_entry syntax_parse_lsmember(pll_entry tokens, plsmember* ret) {
 	ptoken t = GETTKN(tokens);
 	tokens = NEXTTKN(tokens);
 
-	if(t->type == TOKEN_VAR)
+	if(t->base.type == TOKEN_VAR)
 		tokens = syntax_parse_lsvariable(tokens, (plsvariable*)ret);
-	else if(t->type == TOKEN_IF)
+	else if(t->base.type == TOKEN_IF)
 		tokens = syntax_parse_lsif(tokens, (plsif*)ret);
-	else if(t->type == TOKEN_WHILE)
+	else if(t->base.type == TOKEN_WHILE)
 		tokens = syntax_parse_lswhile(tokens, (plswhile*)ret);
 	else {
 		tokens = syntax_parse_lsexpression(tokens, (plsexpression*)ret);
-		switch(((plsexpression)ret)->expression->type) {
+		switch(((plsexpression)ret)->expression->base.type) {
 			case EXPRESSION_ASSIGN:
 			case EXPRESSION_CALL:
 			case EXPRESSION_INCREMENT:
@@ -79,9 +85,13 @@ pll_entry syntax_parse_lsmember(pll_entry tokens, plsmember* ret) {
 	return tokens;
 }
 
+accept_method(lsvariable) {
+
+}
 pll_entry syntax_parse_lsvariable(pll_entry tokens, plsvariable* ret) {
 	plsvariable var = (plsvariable)malloc(sizeof(lsvariable));
-	var->base.type = LSMEMBER_VARIABLE;
+	var->base.base.type = LSMEMBER_VARIABLE;
+	var->base.base.accept = &lsvariable_accept;
 	*ret = var;
 
 	ptoken t = GETTKN(tokens);
@@ -91,9 +101,9 @@ pll_entry syntax_parse_lsvariable(pll_entry tokens, plsvariable* ret) {
 
 	tokens = NEXTTKN(tokens);
 	t = (ptoken)tokens->data;
-	if(t->type == TOKEN_SEMICOLON)
+	if(t->base.type == TOKEN_SEMICOLON)
 		return tokens;
-	else if(t->type != TOKEN_ASSIGN)
+	else if(t->base.type != TOKEN_ASSIGN)
 		UNEXP_EXP_TOKEN(t, TOKEN_SEMICOLON)
 	else {
 		tokens = syntax_parse_expression(NEXTTKN(tokens), &var->expression);
@@ -106,9 +116,13 @@ pll_entry syntax_parse_lsvariable(pll_entry tokens, plsvariable* ret) {
 
 	return tokens;
 }
+accept_method(lsexpression) {
+
+}
 pll_entry syntax_parse_lsexpression(pll_entry tokens, plsexpression* ret) {
 	plsexpression lsexpr = (plsexpression)malloc(sizeof(lsexpression));
-	lsexpr->base.type = LSMEMBER_EXPRESSION;
+	lsexpr->base.base.type = LSMEMBER_EXPRESSION;
+	lsexpr->base.base.accept = &lsexpression_accept;
 	*ret = lsexpr;
 
 	tokens = syntax_parse_expression(tokens, &lsexpr->expression);
@@ -117,44 +131,52 @@ pll_entry syntax_parse_lsexpression(pll_entry tokens, plsexpression* ret) {
 
 	return tokens;
 }
+accept_method(lswhile) {
+
+}
 pll_entry syntax_parse_lswhile(pll_entry tokens, plswhile* ret) {
 	plswhile w = (plswhile)malloc(sizeof(lswhile));
-	w->base.type = LSMEMBER_WHILE;
+	w->base.base.type = LSMEMBER_WHILE;
+	w->base.base.accept = &lswhile_accept;
 	*ret = w;
 
 	tokens = syntax_parse_bracketexpression(tokens, (pbracketexpression*)&w->expression);
 	tokens = NEXTTKN(tokens);
 
 	ptoken t = GETTKN(tokens);
-	if(t->type==TOKEN_SEMICOLON)
+	if(t->base.type==TOKEN_SEMICOLON)
 		return tokens;
 
-	if(t->type==TOKEN_CBRSTART)
+	if(t->base.type==TOKEN_CBRSTART)
 		return syntax_parse_lsblock(tokens, &w->localspace);
 
 	tokens = syntax_parse_lsblock_singlemember(tokens, &w->localspace);
 
 	return tokens;
 }
+accept_method(lsif) {
+
+}
 pll_entry syntax_parse_lsif(pll_entry tokens, plsif* ret) {
 	plsif i = (plsif)malloc(sizeof(lsif));
-	i->base.type = LSMEMBER_IF;
+	i->base.base.type = LSMEMBER_IF;
+	i->base.base.accept = &lsif_accept;
 	*ret = i;
 
 	tokens = syntax_parse_bracketexpression(tokens, (pbracketexpression*)&i->expression);
 	tokens = NEXTTKN(tokens);
 
 	ptoken t = GETTKN(tokens);
-	if(t->type==TOKEN_CBRSTART)
+	if(t->base.type==TOKEN_CBRSTART)
 		tokens = syntax_parse_lsblock(tokens, &i->localspace);
-	else if(t->type==TOKEN_SEMICOLON) {
+	else if(t->base.type==TOKEN_SEMICOLON) {
 		/* intentionally empty */
 	} else
 		tokens = syntax_parse_lsblock_singlemember(tokens, &i->localspace);
 
 	tokens = NEXTTKN(tokens);
 	ptoken p = GETTKN(tokens);
-	if(p->type==TOKEN_ELSE)
+	if(t->base.type==TOKEN_ELSE)
 		tokens = syntax_parse_lselse(tokens, &i->elseblock);
 	else
 		tokens = tokens->prev; /* go back with tokens, it must be pointing on last element processed by this function */
@@ -164,11 +186,11 @@ pll_entry syntax_parse_lsif(pll_entry tokens, plsif* ret) {
 }
 pll_entry syntax_parse_lselse(pll_entry tokens, plselse* ret) {
 	plselse lsels = (plselse)malloc(sizeof(lselse));
-	lsels->base.type = LSMEMBER_ELSE;
+	lsels->base.base.type = LSMEMBER_ELSE;
 	*ret = lsels;
 
 	ptoken t = GETTKN(tokens);
-	if(t->type==TOKEN_CBRSTART)
+	if(t->base.type==TOKEN_CBRSTART)
 		return syntax_parse_lsblock(tokens, &lsels->localspace);
 
 	tokens = syntax_parse_lsblock_singlemember(tokens, &lsels->localspace);

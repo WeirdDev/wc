@@ -3,6 +3,7 @@
 
 #include "lexer.h"
 #include "error.h"
+#include "treevisitor.h"
 
 //#define ISKEYWORD(keyword) (strcmp(currptr, keyword)==0 && !isalpha(currptr[strlen(keyword)]))
 
@@ -83,7 +84,7 @@ plinkedlist lexer_parse(char* source) {
 			strncpy(start, curr-l, l);
 			
 			int i;
-			for(i = 0;consttokens[i].type != TOKEN_EOF;i++)
+			for(i = 0;consttokens[i].base.type != TOKEN_EOF;i++)
 				if(*start==*consttokens[i].string)
 					/* if the first character equals, check the full string */
 					if(strcmp(start, consttokens[i].string) == 0) {
@@ -94,7 +95,7 @@ plinkedlist lexer_parse(char* source) {
 					/* if they aren't equal, continue */
 				/* if the first character isn't equal, continue searching */
 			
-			if(consttokens[i].type == TOKEN_EOF)
+			if(consttokens[i].base.type == TOKEN_EOF)
 				ll_push(tokens, lexer_token_create(TOKEN_WORD, start, currline));
 		} else 
 			FATAL("Invalid token following '%c'", *curr);
@@ -114,7 +115,7 @@ pll_entry lexer_parse_brwords(pll_entry tokens, plinkedlist* list) {
 
 	char even = 0;
 	CHECK_TOKEN(t, TOKEN_BRSTART);
-	while(t->type != TOKEN_BREND) {
+	while(t->base.type != TOKEN_BREND) {
 		tokens = NEXTTKN(tokens);
 		t = GETTKN(tokens);
 
@@ -130,48 +131,52 @@ pll_entry lexer_parse_brwords(pll_entry tokens, plinkedlist* list) {
 }
 
 token consttokens[] = {
-	{ TOKEN_VAR, "var", 0 },
-	{ TOKEN_FUNCTION, "function", 0 },
-	{ TOKEN_IF, "if", 0 },
-	{ TOKEN_ELSE, "else", 0 },
-	{ TOKEN_WHILE, "while", 0 },
+	{ { TOKEN_VAR, NULL },		"var",	0 },
+	{ { TOKEN_FUNCTION, NULL },	"function",	0 },
+	{ { TOKEN_IF, NULL },		"if",	0 },
+	{ { TOKEN_ELSE, NULL },		"else",	0 },
+	{ { TOKEN_WHILE, NULL },	"while",0 },
 
-	{ TOKEN_NULL, "null", 0},
+	{ { TOKEN_NULL, NULL },		"null",	0},
 
-	{ TOKEN_PLUS, "+", 0 },
-	{ TOKEN_MINUS, "-", 0 },
-	{ TOKEN_MUL, "*", 0 },
-	{ TOKEN_DIV, "/", 0 },
-	{ TOKEN_MOD, "%", 0 },
+	{ { TOKEN_PLUS, NULL },		"+",	0 },
+	{ { TOKEN_MINUS, NULL },	"-",	0 },
+	{ { TOKEN_MUL, NULL },		"*",	0 },
+	{ { TOKEN_DIV, NULL },		"/",	0 },
+	{ { TOKEN_MOD, NULL },		"%",	0 },
 
-	{ TOKEN_EQUAL, "==", 0 },
-	{ TOKEN_NOTEQUAL, "!=", 0 },
-	{ TOKEN_SMALLERTHAN, "<", 0 },
-	{ TOKEN_BIGGERTHAN, ">", 0 },
-	{ TOKEN_SMALLEREQUAL, "<=", 0 },
-	{ TOKEN_BIGGEREQUAL, ">=", 0 },
-	{ TOKEN_NEGATION, "!", 0 },
+	{ { TOKEN_EQUAL, NULL },	"==",	0 },
+	{ { TOKEN_NOTEQUAL, NULL }, "!=",	0 },
+	{ { TOKEN_SMALLERTHAN, NULL }, 	"<",	0 },
+	{ { TOKEN_BIGGERTHAN, NULL },	">",	0 },
+	{ { TOKEN_SMALLEREQUAL, NULL },	"<=",	0 },
+	{ { TOKEN_BIGGEREQUAL, NULL },	">=",	0 },
+	{ { TOKEN_NEGATION, NULL },		"!",	0 },
 
-	{ TOKEN_ASSIGN, "=", 0 },
-	{ TOKEN_INCREMENT, "++", 0 },
-	{ TOKEN_DECREMENT, "--", 0 },
+	{ { TOKEN_ASSIGN, NULL },	"=",	0 },
+	{ { TOKEN_INCREMENT, NULL },	"++",	0 },
+	{ { TOKEN_DECREMENT, NULL },	"--",	0 },
 
-	{ TOKEN_COLON, ":", 0 },
-	{ TOKEN_SEMICOLON, ";", 0 },
-	{ TOKEN_COMMA, ",", 0 },
-	{ TOKEN_CBRSTART, "{", 0 },
-	{ TOKEN_CBREND, "}", 0 },
-	{ TOKEN_BRSTART, "(", 0 },
-	{ TOKEN_BREND, ")", 0 },
-	{ TOKEN_IBRSTART, "[", 0 },
-	{ TOKEN_IBREND, "]", 0 },
+	{ { TOKEN_COLON, NULL },	":",	0 },
+	{ { TOKEN_SEMICOLON, NULL },";",	0 },
+	{ { TOKEN_COMMA, NULL },	",",	0 },
+	{ { TOKEN_CBRSTART, NULL },	"{",	0 },
+	{ { TOKEN_CBREND, NULL },	"}",	0 },
+	{ { TOKEN_BRSTART, NULL },	"(",	0 },
+	{ { TOKEN_BREND, NULL },	")",	0 },
+	{ { TOKEN_IBRSTART, NULL },	"[",	0 },
+	{ { TOKEN_IBREND, NULL },	"]",	0 },
 
-	{ TOKEN_EOF, NULL, 0 }
+	{ { TOKEN_EOF, NULL}, 		NULL,	0 }
 };
 
-ptoken lexer_token_create(tokentype type, char* string, int line) {
+accept_method(token) {
+
+}
+ptoken lexer_token_create(membertype type, char* string, int line) {
 	ptoken ret = (ptoken)malloc(sizeof(token));
-	ret->type = type;
+	ret->base.type = type;
+	ret->base.accept = &token_accept;
 	ret->string = string;
 	ret->line = line;
 
@@ -180,6 +185,7 @@ ptoken lexer_token_create(tokentype type, char* string, int line) {
 ptoken lexer_token_copy(ptoken src, int line) {
 	ptoken ret = (ptoken)malloc(sizeof(token));
 	memcpy(ret, src, sizeof(token));
+	ret->base.accept = &token_accept;
 	ret->line = line;
 
 	return ret;
