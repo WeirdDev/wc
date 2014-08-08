@@ -94,8 +94,12 @@ void ll_add(plinkedlist ll, void * data) {
 	//zoznam ukonÄŤĂ­me nulou, NULL
 	tmp->next = NULL;
 	
-	//bĂ˝valĂˇ poslednĂˇ poloĹľka musĂ­ ukazovaĹĄ na novĂş
-	ll->last->next = tmp;
+	if(ll->first==NULL) {
+		ll->first = tmp;
+	} else {
+		//bĂ˝valĂˇ poslednĂˇ poloĹľka musĂ­ ukazovaĹĄ na novĂş
+		ll->last->next = tmp;
+	}
 	//zĂˇkladnĂˇ ĹˇtruktĂşra zoznamu musĂ­ tieĹľ ukazovaĹĄ na novĂş poslednĂş poloĹľku
 	ll->last = tmp;
 }

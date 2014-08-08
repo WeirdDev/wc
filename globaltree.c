@@ -59,7 +59,8 @@ pll_entry syntax_parse_gsfunction(pll_entry tokens, pgsfunction* ret) {
 	else
 		fn->name = t->string;
 
-	tokens = lexer_parse_brwords(tokens, &fn->parameters);
+
+	tokens = lexer_parse_brwords(NEXTTKN(tokens), &fn->parameters);
 	tokens = NEXTTKN(tokens);
 	t = GETTKN(tokens);
 

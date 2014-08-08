@@ -64,7 +64,8 @@ typedef struct token_t {
 	int line;
 } token, *ptoken;
 
-extern token consttokens[];
+extern token keywords[];
+extern token operators[];
 
 #include "ll.h"
 #include <malloc.h>
@@ -75,7 +76,7 @@ extern pll_entry lexer_parse_brwords(pll_entry tokens, plinkedlist* list);
 #define NEXTTKN(tokens)	(tokens->next)
 
 #define UNEXP_TOKEN(ptoken)					{ FATAL("Unexpected token on line %d: '%s'", ptoken->line, ptoken->string); }
-#define UNEXP_EXP_TOKEN(ptoken, expected)	{ FATAL("Unexpected token '%s' on line %d, expected '%s'", ptoken->string, ptoken->line, #expected ); }
+#define UNEXP_EXP_TOKEN(ptoken, expected)	{ FATAL("Unexpected token '%s' on line %d, expected '%d'", ptoken->string, ptoken->line, expected ); }
 
 #define CHECK_TOKEN(ptoken, exptype)		if((ptoken)->base.type != exptype) { UNEXP_EXP_TOKEN(ptoken, exptype); }
 

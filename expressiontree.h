@@ -34,19 +34,21 @@ typedef struct excall_t {
 extern pll_entry syntax_parse_excall(pll_entry tokens, pexconstant* ret);
 
 /* UNARY EXPRESSIONS */
-#define EXPRESSION_INCREMENT	EXTN(21)
-#define EXPRESSION_DECREMENT	EXTN(22)
-#define EXPRESSION_NEGATION		EXTN(23)
-#define EXPRESSION_UNARYPLUS	EXTN(24)
-#define EXPRESSION_UNARYMINUS	EXTN(25)
-#define EXPRESSION_NOT			EXTN(26)
-#define EXPRESSION_REFERENCE	EXTN(27)
+#define EXPRESSION_PREFIXINC	EXTN(21)
+#define EXPRESSION_PREFIXDEC	EXTN(22)
+#define EXPRESSION_POSTFIXINC	EXTN(23)
+#define EXPRESSION_POSTFIXDEC	EXTN(24)
+#define EXPRESSION_NEGATION		EXTN(22)
+#define EXPRESSION_UNARYPLUS	EXTN(23)
+#define EXPRESSION_UNARYMINUS	EXTN(27)
+#define EXPRESSION_NOT			EXTN(28)
+#define EXPRESSION_REFERENCE	EXTN(29)
 typedef struct exunary_t {
 	expression base;
 
 	pexpression expression;
 } exunary, *pexunary;
-extern pll_entry syntax_parse_exunary(pll_entry tokens, pexconstant* ret);
+extern pll_entry syntax_parse_exprefixunary(pll_entry tokens, pexunary* ret);
 
 /* ARITHMETIC EXPRESSIONS */
 #define EXPRESSION_ADD			EXTN(30)
@@ -75,7 +77,7 @@ typedef struct exbinary_t {
 
 	pexpression left, right;
 } exbinary, *pexbinary;
-extern pll_entry syntax_parse_exbinary(pll_entry tokens, pexbinary* ret);
+extern pll_entry syntax_create_exbinary(pexbinary* ret, pexpression left, pexpression right);
 
 /* OTHER EXPRESSIONS */
 #define EXPRESSION_TERNARY		EXTN(51)
@@ -92,7 +94,7 @@ typedef struct bracketexpression_t {
 
 	pexpression expression;
 } bracketexpression, *pbracketexpression;
-pll_entry syntax_parse_exbracket(pll_entry tokens, pbracketexpression* expression);
+pll_entry syntax_parse_exbrackest(pll_entry tokens, pbracketexpression* expression);
 
 #define EXPRESSION_INDEX		EXTN(53)
 typedef struct exindex_t {

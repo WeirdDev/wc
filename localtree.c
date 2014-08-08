@@ -73,8 +73,10 @@ pll_entry syntax_parse_lsmember(pll_entry tokens, plsmember* ret) {
 		switch(((plsexpression)ret)->expression->base.type) {
 			case EXPRESSION_ASSIGN:
 			case EXPRESSION_CALL:
-			case EXPRESSION_INCREMENT:
-			case EXPRESSION_DECREMENT:
+			case EXPRESSION_PREFIXINC:
+			case EXPRESSION_PREFIXDEC:
+			case EXPRESSION_POSTFIXINC:
+			case EXPRESSION_POSTFIXDEC:
 				/* don't throw an error, these expressions are valid in local space */
 				break;
 			default:
