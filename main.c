@@ -5,6 +5,8 @@
 #include "ll.h"
 
 #include "lexer.h"
+#include "syntaxtree.h"
+#include "treevisitor.h"
 
 int main(int argc, char *argv[]) {
 	/* check if we've got just enough input */
@@ -32,7 +34,7 @@ int main(int argc, char *argv[]) {
 	plinkedlist tokens = lexer_parse(source);
 
 	/* SYNTACTICAL ANALYSIS */
-	plinkedlist globalspace = syntax_parse(tokens);
+	psyntaxtree syntaxtree = syntax_parse(tokens);
 
 	fclose(fp);
 	return 0;
