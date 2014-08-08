@@ -9,7 +9,7 @@ pll_entry syntax_parse_expression(pll_entry tokens, pexpression* expression) {
 	return tokens;
 }
 
-pll_entry syntax_parse_bracketexpression(pll_entry tokens, pbracketexpression* expression) {
+pll_entry syntax_parse_exbracket(pll_entry tokens, pbracketexpression* expression) {
 	//TODO: work on this kind of expressions
 	return tokens;
 }

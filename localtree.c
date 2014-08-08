@@ -66,6 +66,8 @@ pll_entry syntax_parse_lsmember(pll_entry tokens, plsmember* ret) {
 		tokens = syntax_parse_lsif(tokens, (plsif*)ret);
 	else if(t->base.type == TOKEN_WHILE)
 		tokens = syntax_parse_lswhile(tokens, (plswhile*)ret);
+	else if(t->base.type == TOKEN_RETURN)
+		tokens = syntax_parse_lsreturn(tokens, (plsreturn*)ret);
 	else {
 		tokens = syntax_parse_lsexpression(tokens, (plsexpression*)ret);
 		switch(((plsexpression)ret)->expression->base.type) {
@@ -73,7 +75,7 @@ pll_entry syntax_parse_lsmember(pll_entry tokens, plsmember* ret) {
 			case EXPRESSION_CALL:
 			case EXPRESSION_INCREMENT:
 			case EXPRESSION_DECREMENT:
-				/* don't throw an error, this is valid */
+				/* don't throw an error, these expressions are valid in local space */
 				break;
 			default:
 				FATAL("Invalid expression found in local space, only assigment, "
@@ -140,7 +142,7 @@ pll_entry syntax_parse_lswhile(pll_entry tokens, plswhile* ret) {
 	w->base.base.accept = &lswhile_accept;
 	*ret = w;
 
-	tokens = syntax_parse_bracketexpression(tokens, (pbracketexpression*)&w->expression);
+	tokens = syntax_parse_exbracket(tokens, (pbracketexpression*)&w->expression);
 	tokens = NEXTTKN(tokens);
 
 	ptoken t = GETTKN(tokens);
@@ -163,7 +165,7 @@ pll_entry syntax_parse_lsif(pll_entry tokens, plsif* ret) {
 	i->base.base.accept = &lsif_accept;
 	*ret = i;
 
-	tokens = syntax_parse_bracketexpression(tokens, (pbracketexpression*)&i->expression);
+	tokens = syntax_parse_exbracket(tokens, (pbracketexpression*)&i->expression);
 	tokens = NEXTTKN(tokens);
 
 	ptoken t = GETTKN(tokens);
@@ -175,7 +177,7 @@ pll_entry syntax_parse_lsif(pll_entry tokens, plsif* ret) {
 		tokens = syntax_parse_lsblock_singlemember(tokens, &i->localspace);
 
 	tokens = NEXTTKN(tokens);
-	ptoken p = GETTKN(tokens);
+	t = GETTKN(tokens);
 	if(t->base.type==TOKEN_ELSE)
 		tokens = syntax_parse_lselse(tokens, &i->elseblock);
 	else
@@ -194,6 +196,23 @@ pll_entry syntax_parse_lselse(pll_entry tokens, plselse* ret) {
 		return syntax_parse_lsblock(tokens, &lsels->localspace);
 
 	tokens = syntax_parse_lsblock_singlemember(tokens, &lsels->localspace);
+
+	return tokens;
+}
+accept_method(lsreturn) {
+
+}
+pll_entry syntax_parse_lsreturn(pll_entry tokens, plsreturn* ret) {
+	plsreturn i = (plsreturn)malloc(sizeof(plsreturn));
+	i->base.base.type = LSMEMBER_RETURN;
+	i->base.base.accept = &lsreturn_accept;
+	*ret = i;
+
+	ptoken t = GETTKN(tokens);
+	if(t->base.type==TOKEN_SEMICOLON)
+		i->expression = NULL;
+	else
+		tokens = syntax_parse_expression(tokens, &i->expression);
 
 	return tokens;
 }

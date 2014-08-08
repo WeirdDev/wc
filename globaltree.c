@@ -64,7 +64,7 @@ pll_entry syntax_parse_gsfunction(pll_entry tokens, pgsfunction* ret) {
 	t = GETTKN(tokens);
 
 	if(t->base.type==TOKEN_SEMICOLON) {
-		fn->localspace = syntax_create_lsblock(ll_new() /* push an empty list for function declarations */);
+		fn->localspace = NULL /* set to NULL for function declarations */;
 		return tokens;
 	}
 

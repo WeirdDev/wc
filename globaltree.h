@@ -29,7 +29,7 @@ typedef struct gsfunction_t {
 
 	char* name;
 	plinkedlist parameters;
-	plsblock localspace;
+	plsblock localspace;	/* <-- if NULL, this is a function declaration */
 } gsfunction, *pgsfunction;
 extern pll_entry syntax_parse_gsfunction(pll_entry tokens, pgsfunction* ret);
 

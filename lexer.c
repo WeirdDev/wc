@@ -136,6 +136,7 @@ token consttokens[] = {
 	{ { TOKEN_IF, NULL },		"if",	0 },
 	{ { TOKEN_ELSE, NULL },		"else",	0 },
 	{ { TOKEN_WHILE, NULL },	"while",0 },
+	{ { TOKEN_RETURN, NULL },	"return",	0 },
 
 	{ { TOKEN_NULL, NULL },		"null",	0},
 
@@ -145,6 +146,7 @@ token consttokens[] = {
 	{ { TOKEN_DIV, NULL },		"/",	0 },
 	{ { TOKEN_MOD, NULL },		"%",	0 },
 
+
 	{ { TOKEN_EQUAL, NULL },	"==",	0 },
 	{ { TOKEN_NOTEQUAL, NULL }, "!=",	0 },
 	{ { TOKEN_SMALLERTHAN, NULL }, 	"<",	0 },
@@ -152,6 +154,15 @@ token consttokens[] = {
 	{ { TOKEN_SMALLEREQUAL, NULL },	"<=",	0 },
 	{ { TOKEN_BIGGEREQUAL, NULL },	">=",	0 },
 	{ { TOKEN_NEGATION, NULL },		"!",	0 },
+	{ { TOKEN_LOGICAND, NULL },	"&&",	0 },
+	{ { TOKEN_LOGICOR, NULL },	"||",	0 },
+
+	{ { TOKEN_AND, NULL },	"&",	0 },
+	{ { TOKEN_OR, NULL },	"|",	0 },
+	{ { TOKEN_XOR, NULL },	"^",	0 },
+	{ { TOKEN_NOT, NULL },	"~",	0 },
+	{ { TOKEN_SHL, NULL },	"<<",	0 },
+	{ { TOKEN_SHR, NULL },	">>",	0 },
 
 	{ { TOKEN_ASSIGN, NULL },	"=",	0 },
 	{ { TOKEN_INCREMENT, NULL },	"++",	0 },
