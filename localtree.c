@@ -7,28 +7,49 @@
 #include "expressiontree.h"
 #include "localtree.h"
 
-pll_entry syntax_parse_lsblock(pll_entry tokens, plinkedlist* members) {
+pll_entry syntax_parse_lsblock(pll_entry tokens, plsblock* localspace) {
 	ptoken t = GETTKN(tokens);
 	tokens = NEXTTKN(tokens);
 	CHECK_TOKEN(t, TOKEN_CBRSTART);
-	int cbr_depth = 1;
+	plinkedlist members = ll_new();
 
-	while(cbr_depth > 0) {
+	do {
+		tokens = NEXTTKN(tokens);
 		t = GETTKN(tokens);
-		if(t->type==TOKEN_CBRSTART)
-			cbr_depth++;
-		else if(t->type==TOKEN_CBREND)
-			cbr_depth--;
 
 		plsmember lsm;
-		tokens = syntax_parse_lsmember(tokens, &lsm);
-		ll_push(*members, lsm);
+		if(t->type==TOKEN_CBRSTART)
+			tokens = syntax_parse_lsblock(tokens, (plsblock*)&lsm);
+		else
+			tokens = syntax_parse_lsmember(tokens, &lsm);
+
+		ll_push(members, lsm);
 
 		tokens = NEXTTKN(tokens);
-	}
+	} while(t->type != TOKEN_CBREND);
+	tokens = NEXTTKN(tokens);
+
+	*localspace = syntax_create_lsblock(members);
 
 	return tokens;
 }
+plsblock syntax_create_lsblock(plinkedlist members) {
+	plsblock ret = (plsblock)malloc(sizeof(lsblock));
+	ret->base.type = LSMEMBER_LSBLOCK;
+	ret->localspace = members;
+
+	return ret;
+}
+pll_entry syntax_parse_lsblock_singlemember(pll_entry tokens, plsblock* localspace) {
+	plsmember m;
+	tokens = syntax_parse_lsmember(tokens, &m);
+	plinkedlist ll = ll_new();
+	ll_add(ll, m);
+	*localspace = syntax_create_lsblock(ll);
+
+	return tokens;
+}
+
 pll_entry syntax_parse_lsmember(pll_entry tokens, plsmember* ret) {
 	ptoken t = GETTKN(tokens);
 	tokens = NEXTTKN(tokens);
@@ -54,6 +75,7 @@ pll_entry syntax_parse_lsmember(pll_entry tokens, plsmember* ret) {
 				break;
 		}
 	}
+
 	return tokens;
 }
 
@@ -110,10 +132,7 @@ pll_entry syntax_parse_lswhile(pll_entry tokens, plswhile* ret) {
 	if(t->type==TOKEN_CBRSTART)
 		return syntax_parse_lsblock(tokens, &w->localspace);
 
-	plsmember m;
-	tokens = syntax_parse_lsmember(tokens, &m);
-	w->localspace = ll_new();
-	ll_add(w->localspace, m);
+	tokens = syntax_parse_lsblock_singlemember(tokens, &w->localspace);
 
 	return tokens;
 }
@@ -130,12 +149,8 @@ pll_entry syntax_parse_lsif(pll_entry tokens, plsif* ret) {
 		tokens = syntax_parse_lsblock(tokens, &i->localspace);
 	else if(t->type==TOKEN_SEMICOLON) {
 		/* intentionally empty */
-	} else {
-		plsmember m;
-		tokens = syntax_parse_lsmember(tokens, &m);
-		i->localspace = ll_new();
-		ll_add(i->localspace, m);
-	}
+	} else
+		tokens = syntax_parse_lsblock_singlemember(tokens, &i->localspace);
 
 	tokens = NEXTTKN(tokens);
 	ptoken p = GETTKN(tokens);
@@ -156,10 +171,7 @@ pll_entry syntax_parse_lselse(pll_entry tokens, plselse* ret) {
 	if(t->type==TOKEN_CBRSTART)
 		return syntax_parse_lsblock(tokens, &lsels->localspace);
 
-	plsmember m;
-	tokens = syntax_parse_lsmember(tokens, &m);
-	lsels->localspace = ll_new();
-	ll_add(lsels->localspace, m);
+	tokens = syntax_parse_lsblock_singlemember(tokens, &lsels->localspace);
 
 	return tokens;
 }

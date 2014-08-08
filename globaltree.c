@@ -58,8 +58,10 @@ pll_entry syntax_parse_gsfunction(pll_entry tokens, pgsfunction* ret) {
 	tokens = NEXTTKN(tokens);
 	t = GETTKN(tokens);
 
-	if(t->type==TOKEN_SEMICOLON)
+	if(t->type==TOKEN_SEMICOLON) {
+		fn->localspace = syntax_create_lsblock(ll_new() /* push an empty list for function declarations */);
 		return tokens;
+	}
 
 	tokens = syntax_parse_lsblock(tokens, &fn->localspace);
 	tokens = NEXTTKN(tokens);

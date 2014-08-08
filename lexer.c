@@ -8,15 +8,32 @@
 
 plinkedlist lexer_parse(char* source) {
 	plinkedlist tokens = ll_new();
-	
+
+	char inSlComment = 0, inMlComment = 0;
 	int l, currline = 0;
 	char* curr, *start;
 	while(*curr!='\0') {
-		if(*curr=='\n')
+		if(*curr=='\n') {
 			currline++;
-		else if(isspace(*curr)) {
-			curr++;
-			continue;
+			if(inSlComment) //single
+				inSlComment = !inSlComment;
+		} else if(isspace(*curr)) {
+			/* curr++;
+			continue; */ //<-- same as leaving execution to go on (jumping through ifelses has the same effect)
+		} else if(*curr=='/') {
+			if(!inSlComment && !inMlComment) {
+				if(curr[1]=='/')
+					inSlComment = !inSlComment;
+				else if(curr[1]=='*')
+					inMlComment = !inMlComment;
+			}
+		} else if(*curr=='*') {
+			if(!inSlComment && inMlComment)
+				if(curr[1]=='/')
+					inMlComment = !inMlComment;
+		} else if(inSlComment || inMlComment) {
+			/* curr++;
+			continue; */ //<-- same as leaving execution to go on (jumping through ifelses has the same effect)
 		}
 
 		else if(isdigit(*curr)) {
@@ -71,6 +88,8 @@ plinkedlist lexer_parse(char* source) {
 					/* if the first character equals, check the full string */
 					if(strcmp(start, consttokens[i].string) == 0) {
 						ll_push(tokens, lexer_token_copy(&consttokens[i], currline));
+						/* (we don't need the local copy of the string anymore) */
+						free(start);
 					}
 					/* if they aren't equal, continue */
 				/* if the first character isn't equal, continue searching */
@@ -116,6 +135,8 @@ token consttokens[] = {
 	{ TOKEN_IF, "if", 0 },
 	{ TOKEN_ELSE, "else", 0 },
 	{ TOKEN_WHILE, "while", 0 },
+
+	{ TOKEN_NULL, "null", 0},
 
 	{ TOKEN_PLUS, "+", 0 },
 	{ TOKEN_MINUS, "-", 0 },

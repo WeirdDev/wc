@@ -15,6 +15,7 @@ typedef char tokentype;
 /* Constants */
 #define TOKEN_NUMBER		30
 #define TOKEN_STRING		31
+#define TOKEN_NULL			32
 /* Arithmetic operators */
 #define TOKEN_PLUS			40
 #define TOKEN_MINUS			41
