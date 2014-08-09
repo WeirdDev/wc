@@ -14,10 +14,10 @@ ptreevisitor syntax_treevisitor_new() {
 void syntax_treevisitor_visit(struct treevisitor_t* visitor, pmember object) {
 	switch(object->type) {
 		case GSMEMBER_VARIABLE:
-			visitor->visitgsvariable(visitor, (pgsvariable)object);
+			visitor->gsvariable(visitor, (pgsvariable)object);
 			break;
 		case GSMEMBER_FUNCTION:
-			visitor->visitgsfunction(visitor, (pgsfunction)object);
+			visitor->gsfunction(visitor, (pgsfunction)object);
 			break;
 
 		//TODO: add other types

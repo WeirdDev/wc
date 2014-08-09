@@ -6,7 +6,7 @@
 #include "globaltree.h"
 
 accept_method(syntaxtree) {
-	syntax_treevisitor_visit(visitor, pmemconv(object));
+	visitor->visit(visitor, pmemconv(object));
 
 	pll_entry curr = ((psyntaxtree)object)->globalspace->first;
 	while(curr != NULL) {
@@ -27,7 +27,7 @@ psyntaxtree syntaxtree_parse(plinkedlist tokens) {
 		ll_push(globalspace, member);
 	}
 
-	psyntaxtree st = (psyntaxtree)malloc(sizeof(syntaxtree));
+	psyntaxtree st = member_new(syntaxtree);
 	st->globalspace = globalspace;
 	st->base.accept = &syntaxtree_accept;
 	return st;

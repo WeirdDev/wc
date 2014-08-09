@@ -15,14 +15,21 @@ typedef int membertype;
 #define EXTN(number)	(EXPRESSIONS_TYPESTART+number)
 
 /* conversion from any pointer type to pmember */
-#define pmemconv(pointer)	((pmember)pointer)
+#define pmemconv(pointer)			((pmember)pointer)
+
+/* is this member instance of this type? */
+#define member_new(typename)		((p##typename )malloc(sizeof( typename )))
+#define instanceof(member, type)	(member.type == type)
 
 struct treevisitor_t;
-#define accept_method_ptr()			void (* accept )(struct treevisitor_t* visitor, struct member_t* object)
+struct member_t;
+typedef void (*accept_method_ptr)(struct treevisitor_t* visitor, struct member_t* object);
 struct member_t {
 	membertype type;
-	accept_method_ptr();
+	accept_method_ptr accept;
+	int line;
 };
 typedef struct member_t member, *pmember;
+extern void member_set(void* member, membertype type, accept_method_ptr accept, int line);
 
 #endif

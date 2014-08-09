@@ -3,6 +3,7 @@
 #include "error.h"
 #include "ll.h"
 
+#include "member.h"
 #include "lexer.h"
 #include "expressiontree.h"
 #include "localtree.h"
@@ -12,19 +13,18 @@ accept_method(lsblock) {
 
 }
 plsblock syntax_create_lsblock(plinkedlist members) {
-	plsblock ret = (plsblock)malloc(sizeof(lsblock));
-	ret->base.base.type = LSMEMBER_LSBLOCK;
-	ret->base.base.accept = &lsblock_accept;
+	plsblock ret = member_new(lsblock);
+	member_set(ret, LSMEMBER_LSBLOCK, &lsblock_accept, 0);
 	ret->localspace = members;
 
 	return ret;
 }
 pll_entry syntax_parse_lsblock(pll_entry tokens, plsblock* localspace) {
-	ptoken t = GETTKN(tokens);
-	tokens = NEXTTKN(tokens);
-	CHECK_TOKEN(t, TOKEN_CBRSTART);
+	ptoken ftoken = GETTKN(tokens);
+	CHECK_TOKEN(ftoken, TOKEN_CBRSTART);
 	plinkedlist members = ll_new();
 
+	ptoken t;
 	do {
 		tokens = NEXTTKN(tokens);
 		t = GETTKN(tokens);
@@ -42,23 +42,26 @@ pll_entry syntax_parse_lsblock(pll_entry tokens, plsblock* localspace) {
 	tokens = NEXTTKN(tokens);
 
 	*localspace = syntax_create_lsblock(members);
+	(*localspace)->base.base.line = ftoken->base.line;
 
 	return tokens;
 }
 
 pll_entry syntax_parse_lsblock_singlemember(pll_entry tokens, plsblock* localspace) {
 	plsmember m;
+
+	ptoken ftoken = GETTKN(tokens);
 	tokens = syntax_parse_lsmember(tokens, &m);
 	plinkedlist ll = ll_new();
 	ll_add(ll, m);
 	*localspace = syntax_create_lsblock(ll);
+	(*localspace)->base.base.line = ftoken->base.line;
 
 	return tokens;
 }
 
 pll_entry syntax_parse_lsmember(pll_entry tokens, plsmember* ret) {
 	ptoken t = GETTKN(tokens);
-	tokens = NEXTTKN(tokens);
 
 	if(t->base.type == TOKEN_VAR)
 		tokens = syntax_parse_lsvariable(tokens, (plsvariable*)ret);
@@ -80,8 +83,8 @@ pll_entry syntax_parse_lsmember(pll_entry tokens, plsmember* ret) {
 				/* don't throw an error, these expressions are valid in local space */
 				break;
 			default:
-				FATAL("Invalid expression found in local space, only assigment, "
-						"call, incrementation and decrementation are allowed");
+				FATAL("Invalid expression found in local space on line %d, only assigment, "
+						"call, incrementation and decrementation are allowed", (*ret)->base.line);
 				break;
 		}
 	}
@@ -93,12 +96,13 @@ accept_method(lsvariable) {
 
 }
 pll_entry syntax_parse_lsvariable(pll_entry tokens, plsvariable* ret) {
-	plsvariable var = (plsvariable)malloc(sizeof(lsvariable));
-	var->base.base.type = LSMEMBER_VARIABLE;
-	var->base.base.accept = &lsvariable_accept;
+	ptoken t = GETTKN(tokens);
+	tokens = NEXTTKN(tokens);
+
+	plsvariable var = member_new(lsvariable);
+	member_sett(var, LSMEMBER_VARIABLE, &lsvariable_accept, t);
 	*ret = var;
 
-	ptoken t = GETTKN(tokens);
 	CHECK_TOKEN(t, TOKEN_WORD)
 	else
 		var->name = t->string;
@@ -124,12 +128,12 @@ accept_method(lsexpression) {
 
 }
 pll_entry syntax_parse_lsexpression(pll_entry tokens, plsexpression* ret) {
-	plsexpression lsexpr = (plsexpression)malloc(sizeof(lsexpression));
-	lsexpr->base.base.type = LSMEMBER_EXPRESSION;
-	lsexpr->base.base.accept = &lsexpression_accept;
+	plsexpression lsexpr = member_new(lsexpression);
+	member_set(lsexpr, LSMEMBER_EXPRESSION, &lsexpression_accept, 0);
 	*ret = lsexpr;
 
 	tokens = syntax_parse_expression(tokens, &lsexpr->expression);
+	lsexpr->base.base.line = lsexpr->expression->base.line;
 	tokens = NEXTTKN(tokens);
 	CHECK_TOKEN(GETTKN(tokens), TOKEN_SEMICOLON);
 
@@ -139,15 +143,17 @@ accept_method(lswhile) {
 
 }
 pll_entry syntax_parse_lswhile(pll_entry tokens, plswhile* ret) {
-	plswhile w = (plswhile)malloc(sizeof(lswhile));
-	w->base.base.type = LSMEMBER_WHILE;
-	w->base.base.accept = &lswhile_accept;
-	*ret = w;
-
-	tokens = syntax_parse_exbracket(tokens, (pbracketexpression*)&w->expression);
+	ptoken t = GETTKN(tokens);
 	tokens = NEXTTKN(tokens);
 
-	ptoken t = GETTKN(tokens);
+	plswhile w = member_new(lswhile);
+	member_sett(w, LSMEMBER_WHILE, &lswhile_accept, t);
+	*ret = w;
+
+	tokens = syntax_parse_exbracket(tokens, (pexbracket*)&w->expression);
+	tokens = NEXTTKN(tokens);
+
+	t = GETTKN(tokens);
 	if(t->base.type==TOKEN_SEMICOLON)
 		return tokens;
 
@@ -162,15 +168,17 @@ accept_method(lsif) {
 
 }
 pll_entry syntax_parse_lsif(pll_entry tokens, plsif* ret) {
-	plsif i = (plsif)malloc(sizeof(lsif));
-	i->base.base.type = LSMEMBER_IF;
-	i->base.base.accept = &lsif_accept;
-	*ret = i;
-
-	tokens = syntax_parse_exbracket(tokens, (pbracketexpression*)&i->expression);
+	ptoken t = GETTKN(tokens);
 	tokens = NEXTTKN(tokens);
 
-	ptoken t = GETTKN(tokens);
+	plsif i = member_new(lsif);
+	member_sett(i, LSMEMBER_IF, &lsif_accept, t);
+	*ret = i;
+
+	tokens = syntax_parse_exbracket(tokens, (pexbracket*)&i->expression);
+	tokens = NEXTTKN(tokens);
+
+	t = GETTKN(tokens);
 	if(t->base.type==TOKEN_CBRSTART)
 		tokens = syntax_parse_lsblock(tokens, &i->localspace);
 	else if(t->base.type==TOKEN_SEMICOLON) {
@@ -188,12 +196,18 @@ pll_entry syntax_parse_lsif(pll_entry tokens, plsif* ret) {
 	return tokens;
 
 }
+accept_method(lselse) {
+
+}
 pll_entry syntax_parse_lselse(pll_entry tokens, plselse* ret) {
-	plselse lsels = (plselse)malloc(sizeof(lselse));
-	lsels->base.base.type = LSMEMBER_ELSE;
+	ptoken t = GETTKN(tokens);
+	tokens = NEXTTKN(tokens);
+
+	plselse lsels = member_new(lselse);
+	member_sett(lsels, LSMEMBER_ELSE, &lselse_accept, t);
 	*ret = lsels;
 
-	ptoken t = GETTKN(tokens);
+	t = GETTKN(tokens);
 	if(t->base.type==TOKEN_CBRSTART)
 		return syntax_parse_lsblock(tokens, &lsels->localspace);
 
@@ -205,12 +219,14 @@ accept_method(lsreturn) {
 
 }
 pll_entry syntax_parse_lsreturn(pll_entry tokens, plsreturn* ret) {
-	plsreturn i = (plsreturn)malloc(sizeof(plsreturn));
-	i->base.base.type = LSMEMBER_RETURN;
-	i->base.base.accept = &lsreturn_accept;
+	ptoken t = GETTKN(tokens);
+	tokens = NEXTTKN(tokens);
+
+	plsreturn i = member_new(lsreturn);
+	member_sett(i, LSMEMBER_RETURN, &lsreturn_accept, t);
 	*ret = i;
 
-	ptoken t = GETTKN(tokens);
+	t = GETTKN(tokens);
 	if(t->base.type==TOKEN_SEMICOLON)
 		i->expression = NULL;
 	else

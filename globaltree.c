@@ -9,9 +9,9 @@
 pll_entry syntax_parse_gsmember(pll_entry tokens, pgsmember* ret) {
 	ptoken t = GETTKN(tokens);
 	if(t->base.type == TOKEN_VAR)
-		return syntax_parse_gsvariable(NEXTTKN(tokens), (pgsvariable*)ret);
+		return syntax_parse_gsvariable(tokens, (pgsvariable*)ret);
 	else if(t->base.type == TOKEN_FUNCTION)
-		return syntax_parse_gsfunction(NEXTTKN(tokens), (pgsfunction*)ret);
+		return syntax_parse_gsfunction(tokens, (pgsfunction*)ret);
 	else {
 		UNEXP_TOKEN(t);
 		return tokens;
@@ -22,12 +22,13 @@ accept_method(gsvariable) {
 
 }
 pll_entry syntax_parse_gsvariable(pll_entry tokens, pgsvariable* ret) {
-	pgsvariable var = (pgsvariable)malloc(sizeof(gsvariable));
-	var->base.base.type = GSMEMBER_VARIABLE;
-	var->base.base.accept = &gsvariable_accept;
+	pgsvariable var = member_new(gsvariable);
+	ptoken t = GETTKN(tokens);
+	tokens = NEXTTKN(tokens);
+	member_sett(var, GSMEMBER_VARIABLE, &gsvariable_accept, t);
 	*ret = var;
 
-	ptoken t = GETTKN(tokens);
+	t = GETTKN(tokens);
 	CHECK_TOKEN(t, TOKEN_WORD)
 	else
 		var->name = t->string;
@@ -49,12 +50,17 @@ pll_entry syntax_parse_gsvariable(pll_entry tokens, pgsvariable* ret) {
 
 	return tokens;
 }
+accept_method(gsfunction) {
+
+}
 pll_entry syntax_parse_gsfunction(pll_entry tokens, pgsfunction* ret) {
-	pgsfunction fn = (pgsfunction)malloc(sizeof(gsfunction));
-	fn->base.base.type = GSMEMBER_FUNCTION;
+	pgsfunction fn = member_new(gsfunction);
+	ptoken t = GETTKN(tokens);
+	tokens = NEXTTKN(tokens);
+	member_sett(fn, GSMEMBER_VARIABLE, &gsfunction_accept, t);
 	*ret = fn;
 
-	ptoken t = (ptoken)tokens->data;
+	t = GETTKN(tokens);
 	CHECK_TOKEN(t, TOKEN_WORD)
 	else
 		fn->name = t->string;

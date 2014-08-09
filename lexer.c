@@ -88,7 +88,7 @@ plinkedlist lexer_parse(char* source) {
 			curr--;
 
 			int i;
-			for(i = 0;keywords[i].base.type != TOKEN_EOF;i++)
+			for(i = 0;keywords[i].base.type != TOKEN_EOL;i++)
 				if(*start==*keywords[i].string)
 					/* if the first character equals, check the full string */
 					if(strcmp(start, keywords[i].string) == 0) {
@@ -102,25 +102,19 @@ plinkedlist lexer_parse(char* source) {
 				/* if the first character isn't equal, continue searching */
 			
 			/* if this is not a keyword, it's a word (indentfier) */
-			if(keywords[i].base.type == TOKEN_EOF)
+			if(keywords[i].base.type == TOKEN_EOL)
 				ll_push(tokens, lexer_token_create(TOKEN_WORD, start, currline));
 		} else {
-			int i, occ, occi = 0, c = 0;
-			do {
-				occ = 0;
-				for(i = 0;operators[i].base.type != TOKEN_EOF;i++)
-					if((operators[i].string)[c]==curr[c]) {
-						occ++;
-						occi = i;
-					}
+			int i;
+			for(i = 0;operators[i].base.type != TOKEN_EOL;i++)
+				if(strncmp(operators[i].string, curr, strlen(operators[i].string)) == 0) {
+					ll_push(tokens, lexer_token_copy(&operators[i], currline));
+					curr += strlen(operators[i].string)-1;
+					break;
+				}
 
-				c++;
-			} while(occ>1);
-
-			if(occ==0 && c==1)
-				FATAL("Invalid token '%c' found on line %d", *curr, currline)
-			else
-				ll_push(tokens, lexer_token_copy(&operators[occi], currline));
+			if(operators[i].base.type == TOKEN_EOL)
+				FATAL("Invalid token '%c' found on line %d", *curr, currline);
 		}
 		
 		curr++;
@@ -157,79 +151,91 @@ pll_entry lexer_parse_brwords(pll_entry tokens, plinkedlist* list) {
 }
 
 token keywords[] = {
-	{ { TOKEN_VAR, NULL },		"var",	0 },
-	{ { TOKEN_FUNCTION, NULL },	"function",	0 },
-	{ { TOKEN_IF, NULL },		"if",	0 },
-	{ { TOKEN_ELSE, NULL },		"else",	0 },
-	{ { TOKEN_WHILE, NULL },	"while",0 },
-	{ { TOKEN_RETURN, NULL },	"return",	0 },
+	{ { TOKEN_VAR, NULL, 0 },		"var" },
+	{ { TOKEN_FUNCTION, NULL, 0 },	"function" },
+	{ { TOKEN_IF, NULL, 0 },		"if" },
+	{ { TOKEN_ELSE, NULL, 0 },		"else" },
+	{ { TOKEN_WHILE, NULL, 0 },		"while" },
+	{ { TOKEN_RETURN, NULL, 0 },	"return" },
 
-	{ { TOKEN_NULL, NULL },		"null",	0},
+	{ { TOKEN_NULL, NULL, 0 },		"null"},
 
-	{ { TOKEN_EOF, NULL}, 		NULL,	0 }
+	{ { TOKEN_EOL, NULL, 0}, 		NULL }
 };
 token operators[] = {
-		/* shorter versions of operators must always be after the longer in this array
+		/* shorter versions of operators with the same beginnings must always be after
+		 * the longer in this array.
 		 * this means for example + must be after ++, & must be after && ... */
-		{ { TOKEN_INCREMENT, NULL },	"++",	0 },
-		{ { TOKEN_DECREMENT, NULL },	"--",	0 },
+		{ { TOKEN_INCREMENT, NULL, 0 },	"++" },
+		{ { TOKEN_DECREMENT, NULL, 0 },	"--" },
 
-		{ { TOKEN_PLUS, NULL },		"+",	0 },
-		{ { TOKEN_MINUS, NULL },	"-",	0 },
-		{ { TOKEN_MUL, NULL },		"*",	0 },
-		{ { TOKEN_DIV, NULL },		"/",	0 },
-		{ { TOKEN_MOD, NULL },		"%",	0 },
+		{ { TOKEN_ASSIGNPLUS, NULL, 0 },		"+=" },
+		{ { TOKEN_ASSIGNMINUS, NULL, 0 },		"-=" },
+		{ { TOKEN_ASSIGNMUL, NULL, 0 },		"*=" },
+		{ { TOKEN_ASSIGNDIV, NULL, 0 },		"/=" },
+		{ { TOKEN_ASSIGNMOD, NULL, 0 },		"%=" },
+		{ { TOKEN_ASSIGNAND, NULL, 0 },		"&=" },
+		{ { TOKEN_ASSIGNOR, NULL, 0 },		"|=" },
+		{ { TOKEN_ASSIGNXOR, NULL, 0 },		"^=" },
+		{ { TOKEN_ASSIGNSHL, NULL, 0 },		"<<=" },
+		{ { TOKEN_ASSIGNSHR, NULL, 0 },		">>=" },
 
-		{ { TOKEN_SHL, NULL },	"<<",	0 },
-		{ { TOKEN_SHR, NULL },	">>",	0 },
+		{ { TOKEN_PLUS, NULL, 0 },		"+" },
+		{ { TOKEN_MINUS, NULL, 0 },		"-" },
+		{ { TOKEN_MUL, NULL, 0 },		"*" },
+		{ { TOKEN_DIV, NULL, 0 },		"/" },
+		{ { TOKEN_MOD, NULL, 0 },		"%" },
 
-		{ { TOKEN_EQUAL, NULL },	"==",	0 },
-		{ { TOKEN_NOTEQUAL, NULL }, "!=",	0 },
-		{ { TOKEN_SMALLERTHAN, NULL }, 	"<",	0 },
-		{ { TOKEN_BIGGERTHAN, NULL },	">",	0 },
-		{ { TOKEN_SMALLEREQUAL, NULL },	"<=",	0 },
-		{ { TOKEN_BIGGEREQUAL, NULL },	">=",	0 },
-		{ { TOKEN_NEGATION, NULL },		"!",	0 },
-		{ { TOKEN_LOGICAND, NULL },	"&&",	0 },
-		{ { TOKEN_LOGICOR, NULL },	"||",	0 },
+		{ { TOKEN_SHL, NULL, 0 },		"<<" },
+		{ { TOKEN_SHR, NULL, 0 },		">>" },
 
-		{ { TOKEN_AND, NULL },	"&",	0 },
-		{ { TOKEN_OR, NULL },	"|",	0 },
-		{ { TOKEN_XOR, NULL },	"^",	0 },
-		{ { TOKEN_NOT, NULL },	"~",	0 },
+		{ { TOKEN_EQUAL, NULL, 0 },		"==" },
+		{ { TOKEN_NOTEQUAL, NULL, 0 },	"!=" },
+		{ { TOKEN_SMALLERTHAN, NULL, 0 }, 	"<" },
+		{ { TOKEN_BIGGERTHAN, NULL, 0 },	">" },
+		{ { TOKEN_SMALLEREQUAL, NULL, 0 },	"<=" },
+		{ { TOKEN_BIGGEREQUAL, NULL, 0 },	">=" },
+		{ { TOKEN_NEGATION, NULL, 0 },		"!" },
+		{ { TOKEN_LOGICAND, NULL, 0 },	"&&" },
+		{ { TOKEN_LOGICOR, NULL, 0 },	"||" },
 
-		{ { TOKEN_ASSIGN, NULL },	"=",	0 },
+		{ { TOKEN_AND, NULL, 0 },		"&" },
+		{ { TOKEN_OR, NULL, 0 },		"|" },
+		{ { TOKEN_XOR, NULL, 0 },		"^" },
+		{ { TOKEN_NOT, NULL, 0 },		"~" },
 
-		{ { TOKEN_COLON, NULL },	":",	0 },
-		{ { TOKEN_SEMICOLON, NULL },";",	0 },
-		{ { TOKEN_COMMA, NULL },	",",	0 },
-		{ { TOKEN_CBRSTART, NULL },	"{",	0 },
-		{ { TOKEN_CBREND, NULL },	"}",	0 },
-		{ { TOKEN_BRSTART, NULL },	"(",	0 },
-		{ { TOKEN_BREND, NULL },	")",	0 },
-		{ { TOKEN_IBRSTART, NULL },	"[",	0 },
-		{ { TOKEN_IBREND, NULL },	"]",	0 },
+		{ { TOKEN_ASSIGN, NULL, 0 },	"=" },
 
-		{ { TOKEN_EOF, NULL}, 		NULL,	0 }
+		{ { TOKEN_COLON, NULL, 0 },		":" },
+		{ { TOKEN_SEMICOLON, NULL, 0 },	";" },
+		{ { TOKEN_COMMA, NULL, 0 },		"," },
+		{ { TOKEN_CBRSTART, NULL, 0 },	"{" },
+		{ { TOKEN_CBREND, NULL, 0 },	"}" },
+		{ { TOKEN_BRSTART, NULL, 0 },	"("},
+		{ { TOKEN_BREND, NULL, 0 },		")" },
+		{ { TOKEN_IBRSTART, NULL, 0 },	"[" },
+		{ { TOKEN_IBREND, NULL, 0 },	"]" },
+
+		{ { TOKEN_EOL, NULL, 0 }, 		NULL }
 };
 
 accept_method(token) {
 
 }
 ptoken lexer_token_create(membertype type, char* string, int line) {
-	ptoken ret = (ptoken)malloc(sizeof(token));
+	ptoken ret = member_new(token);
 	ret->base.type = type;
 	ret->base.accept = &token_accept;
 	ret->string = string;
-	ret->line = line;
+	ret->base.line = line;
 
 	return ret;
 }
 ptoken lexer_token_copy(ptoken src, int line) {
-	ptoken ret = (ptoken)malloc(sizeof(token));
+	ptoken ret = member_new(token);
 	memcpy(ret, src, sizeof(token));
 	ret->base.accept = &token_accept;
-	ret->line = line;
+	ret->base.line = line;
 
 	return ret;
 }

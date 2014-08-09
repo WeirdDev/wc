@@ -3,19 +3,23 @@
 
 #include "member.h"
 #include "ll.h"
+#include "lexer.h"
 
 /* BASE EXPRESSION */
 typedef struct expression_t {
 	struct member_t base;
 
 } expression, *pexpression;
-pll_entry syntax_parse_expression(pll_entry tokens, pexpression* expression);
+extern pll_entry syntax_parse_expression(pll_entry tokens, pexpression* expression);
+extern pll_entry syntax_parse_expressionlist(pll_entry tokens, plinkedlist* expressions);
 
 /* TERMINAL EXPRESSIONS */
 #define EXPRESSION_NUMBER		EXTN(11)
 #define EXPRESSION_STRING		EXTN(12)
 #define EXPRESSION_NULL			EXTN(13)
-#define EXPRESSION_CALL			EXTN(14)
+
+#define EXPRESSION_VARIABLE		EXTN(14)
+#define EXPRESSION_CALL			EXTN(15)
 extern pll_entry syntax_parse_exterminal(pll_entry tokens, pexpression* ret);
 
 typedef struct exconstant_t {
@@ -25,13 +29,19 @@ typedef struct exconstant_t {
 } exconstant, *pexconstant;
 extern pll_entry syntax_parse_exconstant(pll_entry tokens, pexconstant* ret);
 
+typedef struct exvariable_t {
+	expression base;
+
+	char* name;
+} exvariable, *pexvariable;
+
 typedef struct excall_t {
 	expression base;
 
 	char* identifier;
 	plinkedlist arguments;
 } excall, *pexcall;
-extern pll_entry syntax_parse_excall(pll_entry tokens, pexconstant* ret);
+extern pll_entry syntax_parse_excall(pll_entry tokens, pexcall* ret);
 
 /* UNARY EXPRESSIONS */
 #define EXPRESSION_PREFIXINC	EXTN(21)
@@ -60,7 +70,7 @@ extern pll_entry syntax_parse_exprefixunary(pll_entry tokens, pexunary* ret);
 #define EXPRESSION_OR			EXTN(36)
 #define EXPRESSION_XOR			EXTN(37)
 #define EXPRESSION_SHL			EXTN(38)
-#define EXPRESSION_SHR			EXTN(39
+#define EXPRESSION_SHR			EXTN(39)
 
 /* LOGIC EXPRESSION */
 #define EXPRESSION_EQUAL		EXTN(41)
@@ -71,16 +81,29 @@ extern pll_entry syntax_parse_exprefixunary(pll_entry tokens, pexunary* ret);
 #define EXPRESSION_BIGGEREQUAL	EXTN(46)
 #define EXPRESSION_LOGICOR		EXTN(47)
 #define EXPRESSION_LOGICAND		EXTN(48)
-#define EXPRESSION_ASSIGN		EXTN(49)
+
+
+/* ASSIGNMENT EXPRESSIONS */
+#define EXPRESSION_ASSIGN		EXTN(50)
+#define EXPRESSION_ASSIGNPLUS	EXTN(51)
+#define EXPRESSION_ASSIGNMINUS	EXTN(52)
+#define EXPRESSION_ASSIGNMUL	EXTN(53)
+#define EXPRESSION_ASSIGNDIV	EXTN(54)
+#define EXPRESSION_ASSIGNMOD	EXTN(55)
+#define EXPRESSION_ASSIGNAND	EXTN(56)
+#define EXPRESSION_ASSIGNOR		EXTN(57)
+#define EXPRESSION_ASSIGNXOR	EXTN(58)
+#define EXPRESSION_ASSIGNSHL	EXTN(59)
+#define EXPRESSION_ASSIGNSHR	EXTN(60)
 typedef struct exbinary_t {
 	expression base;
 
 	pexpression left, right;
 } exbinary, *pexbinary;
-extern pll_entry syntax_create_exbinary(pexbinary* ret, pexpression left, pexpression right);
+extern pexbinary syntax_create_exbinary(ptoken operator, pexpression left, pexpression right);
 
 /* OTHER EXPRESSIONS */
-#define EXPRESSION_TERNARY		EXTN(51)
+#define EXPRESSION_TERNARY		EXTN(71)
 typedef struct externary_t {
 	expression base;
 
@@ -88,21 +111,29 @@ typedef struct externary_t {
 } externary, *pexternary;
 extern pll_entry syntax_parse_externary(pll_entry tokens, pexternary* ret);
 
-#define EXPRESSION_BRACKETS		EXTN(52)
-typedef struct bracketexpression_t {
+#define EXPRESSION_BRACKETS		EXTN(72)
+typedef struct exbracket_t {
 	expression base;
 
 	pexpression expression;
-} bracketexpression, *pbracketexpression;
-pll_entry syntax_parse_exbrackest(pll_entry tokens, pbracketexpression* expression);
+} exbracket, *pexbracket;
+pll_entry syntax_parse_exbracket(pll_entry tokens, pexbracket* expression);
 
-#define EXPRESSION_INDEX		EXTN(53)
+#define EXPRESSION_INDEX		EXTN(73)
 typedef struct exindex_t {
 	expression base;
 
 	pexpression indexable, index;
 } exindex, *pexindex;
 extern pll_entry syntax_parse_exindex(pll_entry tokens, pexindex* ret);
+
+#define EXPRESSION_ARRAY		EXTN(74)
+typedef struct exarray_t {
+	expression base;
+
+	plinkedlist items;
+} exarray, *pexarray;
+extern pll_entry syntax_parse_exarray(pll_entry tokens, pexarray* ret);
 
 /* ARITHMETIC EXPRESSIONS */
 
