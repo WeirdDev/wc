@@ -73,8 +73,21 @@ pll_entry syntax_parse_lsmember(pll_entry tokens, plsmember* ret) {
 		tokens = syntax_parse_lsreturn(tokens, (plsreturn*)ret);
 	else {
 		tokens = syntax_parse_lsexpression(tokens, (plsexpression*)ret);
-		switch(((plsexpression)ret)->expression->base.type) {
+		switch((*(plsexpression*)ret)->expression->base.type) {
+			/* all types of assignments */
 			case EXPRESSION_ASSIGN:
+			case EXPRESSION_ASSIGNPLUS:
+			case EXPRESSION_ASSIGNMINUS:
+			case EXPRESSION_ASSIGNMUL:
+			case EXPRESSION_ASSIGNDIV:
+			case EXPRESSION_ASSIGNMOD:
+			case EXPRESSION_ASSIGNAND:
+			case EXPRESSION_ASSIGNOR:
+			case EXPRESSION_ASSIGNXOR:
+			case EXPRESSION_ASSIGNSHL:
+			case EXPRESSION_ASSIGNSHR:
+
+			/* and than the standard stuff */
 			case EXPRESSION_CALL:
 			case EXPRESSION_PREFIXINC:
 			case EXPRESSION_PREFIXDEC:

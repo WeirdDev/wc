@@ -31,37 +31,40 @@ membertype binaryexpressions[][4] = {
 	{ TOKEN_LOGICAND,	EXPRESSION_LOGICAND,3, ASSOC_LEFT },
 
 	{ TOKEN_ASSIGN,			EXPRESSION_ASSIGN,	1, ASSOC_RIGHT },
-	{ TOKEN_ASSIGNPLUS,		EXPRESSION_ASSIGN,	1, ASSOC_RIGHT },
-	{ TOKEN_ASSIGNMINUS,	EXPRESSION_ASSIGN,	1, ASSOC_RIGHT },
-	{ TOKEN_ASSIGNMUL,		EXPRESSION_ASSIGN,	1, ASSOC_RIGHT },
-	{ TOKEN_ASSIGNDIV,		EXPRESSION_ASSIGN,	1, ASSOC_RIGHT },
-	{ TOKEN_ASSIGNMOD,		EXPRESSION_ASSIGN,	1, ASSOC_RIGHT },
-	{ TOKEN_ASSIGNAND,		EXPRESSION_ASSIGN,	1, ASSOC_RIGHT },
-	{ TOKEN_ASSIGNOR,		EXPRESSION_ASSIGN,	1, ASSOC_RIGHT },
-	{ TOKEN_ASSIGNXOR,		EXPRESSION_ASSIGN,	1, ASSOC_RIGHT },
-	{ TOKEN_ASSIGNSHL,		EXPRESSION_ASSIGN,	1, ASSOC_RIGHT },
-	{ TOKEN_ASSIGNSHR,		EXPRESSION_ASSIGN,	1, ASSOC_RIGHT },
+	{ TOKEN_ASSIGNPLUS,		EXPRESSION_ASSIGNPLUS,	1, ASSOC_RIGHT },
+	{ TOKEN_ASSIGNMINUS,	EXPRESSION_ASSIGNMINUS,	1, ASSOC_RIGHT },
+	{ TOKEN_ASSIGNMUL,		EXPRESSION_ASSIGNMUL,	1, ASSOC_RIGHT },
+	{ TOKEN_ASSIGNDIV,		EXPRESSION_ASSIGNDIV,	1, ASSOC_RIGHT },
+	{ TOKEN_ASSIGNMOD,		EXPRESSION_ASSIGNMOD,	1, ASSOC_RIGHT },
+	{ TOKEN_ASSIGNAND,		EXPRESSION_ASSIGNAND,	1, ASSOC_RIGHT },
+	{ TOKEN_ASSIGNOR,		EXPRESSION_ASSIGNOR,	1, ASSOC_RIGHT },
+	{ TOKEN_ASSIGNXOR,		EXPRESSION_ASSIGNXOR,	1, ASSOC_RIGHT },
+	{ TOKEN_ASSIGNSHL,		EXPRESSION_ASSIGNSHL,	1, ASSOC_RIGHT },
+	{ TOKEN_ASSIGNSHR,		EXPRESSION_ASSIGNSHR,	1, ASSOC_RIGHT },
 
 	{ TOKEN_EOL,		0,	0, ASSOC_LEFT }
 };
 membertype getexbntype(ptoken t) {
 	int i;
 	for(i = 0;binaryexpressions[i][0] != TOKEN_EOL;i++)
-		return binaryexpressions[i][1];
+		if(binaryexpressions[i][0] == t->base.type)
+			return binaryexpressions[i][1];
 
 	return 0;
 }
 int getprec(ptoken t) {
 	int i;
 	for(i = 0;binaryexpressions[i][0] != TOKEN_EOL;i++)
-		return binaryexpressions[i][2];
+		if(binaryexpressions[i][0] == t->base.type)
+			return binaryexpressions[i][2];
 
 	return 0;
 }
 int getassoc(ptoken t)  {
 	int i;
 	for(i = 0;binaryexpressions[i][0] != TOKEN_EOL;i++)
-		return binaryexpressions[i][3];
+		if(binaryexpressions[i][0] == t->base.type)
+			return binaryexpressions[i][3];
 
 	return 0;
 }
@@ -72,32 +75,34 @@ pll_entry syntax_parse_expression_p(pll_entry tokens, pexpression* ret, int minp
 	tokens = NEXTTKN(tokens);
 	ptoken t = GETTKN(tokens);
 
-	int nextprec;
+	int nextprec; ptoken currentoperator;
 	while((nextprec = getprec(t)) >= minprec) {
+		currentoperator = t;
 		switch(t->base.type) {
 			case TOKEN_SEMICOLON:
 			case TOKEN_COLON:
 			case TOKEN_COMMA:
 			case TOKEN_BREND:
 			case TOKEN_CBREND:
-				*ret = result;
-				return tokens->prev;
+				goto returnpoint;
 				break;
 		}
-		int associativity = getassoc(t);
+		int associativity = getassoc(currentoperator);
 		if(associativity == ASSOC_LEFT)
 			nextprec++;
 
 		pexpression right;
 		tokens = NEXTTKN(tokens);
 		tokens = syntax_parse_expression_p(tokens, &right, nextprec);
+		result = (pexpression)syntax_create_exbinary(currentoperator, result, right);
+
 		tokens = NEXTTKN(tokens);
 		t = GETTKN(tokens);
-		result = (pexpression)syntax_create_exbinary(t, result, right);
 	}
 
+returnpoint:
 	*ret = result;
-	return tokens;
+	return tokens->prev;
 }
 
 pll_entry syntax_parse_expression(pll_entry tokens, pexpression* expression) {
@@ -143,13 +148,13 @@ accept_method(exvariable) {
 pll_entry syntax_parse_exterminal(pll_entry tokens, pexpression* ret) {
 	pll_entry ftoken = tokens;	//the first token
 	ptoken p = GETTKN(tokens);
-	tokens = NEXTTKN(tokens);
 
 	if(p->base.type == TOKEN_BRSTART) {
 		tokens = syntax_parse_exbracket(ftoken, (pexbracket*)ret);
 	} else if(p->base.type == TOKEN_CBRSTART) {
 		tokens = syntax_parse_exarray(ftoken, (pexarray*)ret);
 	} else if(p->base.type == TOKEN_WORD) {
+		tokens = NEXTTKN(tokens);
 		p = GETTKN(tokens);
 		if(p->base.type == TOKEN_BRSTART) {
 			tokens = syntax_parse_excall(ftoken, (pexcall*)ret);
@@ -158,6 +163,9 @@ pll_entry syntax_parse_exterminal(pll_entry tokens, pexpression* ret) {
 			*ret = (pexpression)member_new(exvariable);
 			member_sett(*ret, EXPRESSION_VARIABLE, &exvariable_accept, p);
 			((pexvariable)*ret)->name = p->string;
+
+			/* go back a token */
+			tokens = tokens->prev;
 		}
 	} else if(p->base.type == TOKEN_NUMBER || p->base.type == TOKEN_STRING || p->base.type == TOKEN_NULL) {
 		tokens = syntax_parse_exconstant(ftoken, (pexconstant*)ret);
@@ -165,7 +173,8 @@ pll_entry syntax_parse_exterminal(pll_entry tokens, pexpression* ret) {
 		tokens = syntax_parse_exprefixunary(ftoken, (pexunary*)ret);
 	}
 
-	/* we were aleady one token ahead, we can now find out if there isn't any postfix or ternary operator applied */
+	/* go one token ahead, so we can find out if there isn't any postfix or ternary operator applied */
+	tokens = NEXTTKN(tokens);
 	p = GETTKN(tokens);
 	if(p->base.type == TOKEN_INCREMENT || p->base.type == TOKEN_INCREMENT) {
 		switch((*ret)->base.type) {
@@ -219,6 +228,7 @@ pll_entry syntax_parse_exconstant(pll_entry tokens, pexconstant* ret) {
 	ptoken t = GETTKN(tokens);
 	pexconstant c = member_new(exconstant);
 	member_sett(c, 0, &exconstant_accept, t);
+	*ret = c;
 
 	switch(t->base.type) {
 		case TOKEN_NUMBER:
