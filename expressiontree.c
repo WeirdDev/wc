@@ -114,6 +114,7 @@ pll_entry syntax_parse_expressionlist(pll_entry tokens, plinkedlist* expressions
 	plinkedlist list = ll_new();
 
 	ptoken t;
+	//TODO: completely rework this loop!
 	do {
 		pexpression expr;
 		tokens = syntax_parse_expression(tokens, &expr);

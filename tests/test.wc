@@ -1,0 +1,68 @@
+/* gsvariable and exconstant tests */
+var a;
+var b = 10;
+var c = "Hello Tests!";
+var d = null;
+var e = b + d;
+
+function test_gsfunction(p1, p2, p3);
+function test_lsexpressions();
+function test_lsmembers();
+function test_expressions();
+function main() {
+	test_gsfunction();
+	test_lsexpressions();
+	test_lsmembers();
+	test_expressions();
+	
+	return 0;
+}
+
+function test_gsfunction(p1, p2, p3) {
+	var a = 1;
+	var b = 2;
+	var c = 3;
+	
+	return a + b + c;
+}
+function test_lsexpressions() {
+	var a = 1;
+	var b = 2;
+	
+	a += b;
+	a *= b;
+	b %= a;
+	b -= a;
+	b /= b;
+	
+	b |= a*b*a;
+	b &= b;
+	a = a^b;
+	a <<= 2;
+	b >>= 0;
+	
+	a = b;
+	
+	a = test_gsfunction();
+	
+}
+function test_lsmembers() {
+	if(5!=7 && !(2+2 > 4 || 7 <= 6 && 1 >= 1 || 7*a < a))
+		print("This is stupid");
+	else if(2 == 2) {
+		print("This is true, but it's stupid either");
+	} else {
+		print("And why do I care?");
+	}
+	
+	var counter;
+	while(1&1==1) {
+		print("Endless...\n");
+		counter++;
+	}
+	
+	return "SUCCESS...or?";
+}
+function test_expressions() {
+	/* There's gonna be lot of testing here, so I leave it so for now... */
+}
