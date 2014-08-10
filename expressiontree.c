@@ -44,30 +44,17 @@ membertype binaryexpressions[][4] = {
 
 	{ TOKEN_EOL,		0,	0, ASSOC_LEFT }
 };
-membertype getexbntype(ptoken t) {
+membertype browsebinaryexpressions(ptoken t, int forWhat) {
 	int i;
 	for(i = 0;binaryexpressions[i][0] != TOKEN_EOL;i++)
 		if(binaryexpressions[i][0] == t->base.type)
-			return binaryexpressions[i][1];
+			return binaryexpressions[i][forWhat];
 
-	return 0;
+	return -1;
 }
-int getprec(ptoken t) {
-	int i;
-	for(i = 0;binaryexpressions[i][0] != TOKEN_EOL;i++)
-		if(binaryexpressions[i][0] == t->base.type)
-			return binaryexpressions[i][2];
-
-	return 0;
-}
-int getassoc(ptoken t)  {
-	int i;
-	for(i = 0;binaryexpressions[i][0] != TOKEN_EOL;i++)
-		if(binaryexpressions[i][0] == t->base.type)
-			return binaryexpressions[i][3];
-
-	return 0;
-}
+#define getexbntype(t)	browsebinaryexpressions(t, 1)
+#define getprec(t)		browsebinaryexpressions(t, 2)
+#define getassoc(t)		browsebinaryexpressions(t, 3)
 pll_entry syntax_parse_expression_p(pll_entry tokens, pexpression* ret, int minprec) {
 	pexpression result;
 	tokens = syntax_parse_exterminal(tokens, &result);
@@ -110,19 +97,22 @@ pll_entry syntax_parse_expression(pll_entry tokens, pexpression* expression) {
 }
 pll_entry syntax_parse_expressionlist(pll_entry tokens, plinkedlist* expressions) {
 	ptoken ftoken = GETTKN(tokens);
-	tokens = NEXTTKN(tokens);
 	plinkedlist list = ll_new();
 
-	ptoken t;
-	//TODO: completely rework this loop!
-	do {
+	tokens = NEXTTKN(tokens);
+	ptoken t = GETTKN(tokens);
+	while(t->base.type != TOKEN_BREND && t->base.type != TOKEN_CBREND) {
 		pexpression expr;
 		tokens = syntax_parse_expression(tokens, &expr);
 		ll_push(list, expr);
 
-		t = GETTKN(tokens);
 		tokens = NEXTTKN(tokens);
-	} while(t->base.type == TOKEN_COMMA);
+		t = GETTKN(tokens);
+		if(t->base.type == TOKEN_COMMA) {
+			tokens = NEXTTKN(tokens);
+			t = GETTKN(tokens);
+		}
+	}
 
 	if(ftoken->base.type == TOKEN_BRSTART && t->base.type != TOKEN_BREND)
 		FATAL("Unexpected token '%s' on line %d, expected ')'", t->string, t->base.line)
@@ -256,16 +246,13 @@ accept_method(excall) {
 }
 pll_entry syntax_parse_excall(pll_entry tokens, pexcall* ret) {
 	ptoken t = GETTKN(tokens);
-	tokens = NEXTTKN(tokens);
 
 	pexcall c = member_new(excall);
 	member_sett(c, EXPRESSION_CALL, &excall_accept, t);
 	*ret = c;
-
-	t = GETTKN(tokens);
-	tokens = NEXTTKN(tokens);
 	c->identifier = t->string;
 
+	tokens = NEXTTKN(tokens);
 	tokens = syntax_parse_expressionlist(tokens, &c->arguments);
 
 	return tokens;
